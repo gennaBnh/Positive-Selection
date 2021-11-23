@@ -78,7 +78,7 @@
     }
     .testnav  a:hover {color:red;}
     div.demo {
-      margin-top: 150px; /* correctif utile si jquery n'est pas chargé (ex : hors-ligne) */
+      margin-top: 150px;
       position: relative;
       width: 100%;
       min-height: 100%;
@@ -89,6 +89,19 @@
       height: auto;
       max-height: 200px;
       overflow-x: hidden;
+    }
+    .node.seqblock {
+      cursor: default;
+    }
+    .seqblock text {
+      font-family: 'Courier';
+    }
+    .seqblock g text {
+      color: #000;
+      cursor: text;
+      font-family: 'Courier';
+      font-size: 16.667px;
+      letter-spacing: calc(12px - 9.998px);
     }
   </style>
 <% include ../partials/head %>
@@ -222,16 +235,13 @@
   // ==============================================================
   var displaySeqType = 'AA';
   var hStepBase = 12;
+  var alignmentLetterSpacing = hStepBase - 9.998;
   var psThresholdHigh = $('#ps-threshold-high').val() || 1.0;
   var psThresholdLow = $('#ps-threshold-low').val() || 0.3;
   var psThresholdHighBgColor = "#6665FC";
   var psThresholdLowBgColor = "#f7dc6f";
   var psBelowThresholdBgColor = "beige";
   var psMissingBgColor = "#aaa";
-  var psThresholdHighTxtColor = "#fff";
-  var psThresholdLowTxtColor = "#000";
-  var psBelowThresholdTxtColor = "#000";
-  var psMissingTxtColor = "#aaa";
   var projOffsetLeft = 700;
   var psThresholdsChanged = false;
   // ==============================================================
@@ -1020,12 +1030,12 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
   }
   // Alignement : ajout des AA / codons (version séquence entière)
   seqTextAA.append('text')
-    .style('letter-spacing', (hStepBase - 10)+'px') // Espacement des lettres pour correpondre au graphe
+    .style('letter-spacing', (alignmentLetterSpacing)+'px') // Espacement des lettres pour correpondre au graphe
     .attr('x', function(d) {return 1;})
     .attr('y', function(d) {return Math.floor(hStepBase/3);})
     .text(function(d) {return d.aa;});
   seqTextNuc.append('text')
-    .style('letter-spacing', (hStepBase - 10)+'px') // Espacement des lettres pour correpondre au graphe
+    .style('letter-spacing', (alignmentLetterSpacing)+'px') // Espacement des lettres pour correpondre au graphe
     .attr('x', function(d) {return 1;})
     .attr('y', function(d) {return Math.floor(hStepBase/3);})
     .text(function(d) {return d.dna;});
@@ -1094,16 +1104,13 @@ function saveSVGTree(){
 function saveSVGAlignment(){
   $("a#tree").css('color', 'black');
   $("a#selecp").css('color', 'red');
-  $('.aa-sequence text').css({
+  // Application de styles pour l'export
+  $('.seqblock text').css({
     'font-family':'Courier',
-    'letter-spacing':(hStepBase - 9.6)+'px',
   });
-  $('.dna-sequence text').css({
-    'font-family':'Courier',
-    'letter-spacing':(hStepBase - 9.6)+'px',
-  });
-  $('.sequence-name').css({
-    'font-family':'Courier',
+  $('.seqblock g text').css({
+    'letter-spacing':(alignmentLetterSpacing)+'px',
+    'font-size': '16.667px',
   });
   // get styles from all required stylesheets
   // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
@@ -1588,13 +1595,13 @@ $('#export').on('click', function(event, dropdownData) {
         break;
       case "Alignment":
         saveSVGAlignment();
-        $('.aa-sequence text').css({
+        // Correction des styles de la page après l'export
+        $('.seqblock text').css({
           'font-family':'Courier',
-          'letter-spacing':(hStepBase - 10)+'px',
         });
-        $('.dna-sequence text').css({
-          'font-family':'Courier',
-          'letter-spacing':(hStepBase - 10)+'px',
+        $('.seqblock g text').css({
+          'letter-spacing':(alignmentLetterSpacing)+'px',
+          'font-size': '16.667px',
         });
         break;
       default:
