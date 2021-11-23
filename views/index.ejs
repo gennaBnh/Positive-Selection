@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Homepage</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"rel="stylesheet">
+
+    <style>
+
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+
+
+      body {
+        padding-top: 0rem;
+        padding-bottom: 3rem;
+        color: #5a5a5a;
+      }
+
+      footer {
+        padding-top: 1rem;
+        padding-bottom: 3rem;
+      }
+
+
+      h1{
+          padding-bottom: 0px;
+      }
+
+      h2{
+        font-weight: 300;
+        padding-bottom: 30px;
+      }
+
+      h5{
+          color: #708090;
+      }
+
+    /* Ajout de l'effet souligné */
+
+      .Option{
+    text-decoration:none;
+    padding: 5px 0px;
+    padding-bottom: 1px;
+    text-align: center;
+    }
+
+    .Option:after {
+      content: '';
+      display: block;
+      margin: auto;
+      height: 1px;
+      width: 0;
+      background: transparent;
+      transition: width .5s ease, background-color .5s ease;
+    }
+
+    .Option:hover:after {
+        width: 90%;
+        background: lightgrey;
+      }
+
+      /* Fin de l'ajout de l'effet souligné */
+
+
+
+      /* Featurettes
+      ------------------------- */
+
+      .featurette-divider {
+        padding-bottom: 2rem;
+      }
+
+      /* Thin out the marketing headings */
+      .featurette-heading {
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -.05rem;
+      }
+      .featurette {
+        padding-left: 5rem;
+      }
+
+
+      /* RESPONSIVE CSS
+      -------------------------------------------------- */
+
+      @media (min-width: 40em) {
+        /* Bump up size of carousel content */
+
+        .featurette-heading {
+          font-size: 40px;
+        }
+      }
+
+      @media (min-width: 62em) {
+        .featurette-heading {
+          margin-top: 10rem;
+        }
+      }
+
+      p {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      #options{
+        padding-bottom: 10px;
+      }
+
+
+    </style>
+
+
+    <!-- Custom styles for this template -->
+
+  </head>
+  <body>
+
+    <% include ../partials/header %>
+
+    <header>
+
+      <div class="container-fluid">
+        <h1 class="text-center">Interface web pour la sélection positive</h1>
+        </div>
+      </div>
+
+    </header>
+
+
+  <main>
+
+
+    <!-- Partie 1 -->
+
+      <!-- Exemple d'affichage -->
+
+      <div class="container-fluid text-center">
+        <h2 class="text-center"><span class="text-muted">Un exemple d'affichage ...</span></h2>
+
+        <img src="https://scontent-cdg2-1.xx.fbcdn.net/v/t1.15752-9/256353432_1273879479752352_289156893457297206_n.png?_nc_cat=108&ccb=1-5&_nc_sid=ae9488&_nc_ohc=64jQ0i1P--AAX8wATiE&_nc_ht=scontent-cdg2-1.xx&oh=1aa622e642432e70d99064b4665c1541&oe=61B55AA4" alt="exemple d'affichage" width="1050" height="500"/>
+      </div>
+
+      <!-- Description des options d'affichage -->
+
+      <div class="container-fluid text-center">
+        <h2 class="text-center"><span class="text-muted">... et ses différentes options :</span></h2>
+
+        <div class="col-lg-3">
+          <h5 class="Option">On click</h5>
+          <p class="text-center">Inversion de branches <br/> Sélection de noeuds à afficher</p>
+        </div>
+
+        <div class="col-lg-3">
+          <h5 class="Option">Expand/Compact tree</h5>
+          <p class="text-center">Augmentation/Diminution <br/> de l'espace inter-branches</p>
+        </div>
+
+          <div class="col-lg-3" id="options">
+            <h5 class="Option text-center">AlignmentNature</h5>
+            <p class="text-center">Affichage de séquences <br/> nucléiques ou protéiques</p>
+          </div>
+
+          <div class="col-lg-3" id="options">
+            <h5 class="Option">WidthSize +/- </h5>
+            <p class="text-center">Augmentation/Diminution <br/> de la largeur de l'arbre</p>
+          </div>
+
+        <!--  <div class="OptionsRow2"> -->
+            <div class="col-lg-3 " id="options">
+              <h5 class="Option">HeightSize +/- </h5>
+              <p class="text-center">Augmentation/Diminution <br/> de la longueur de l'arbre et de l'alignement</p>
+            </div>
+
+            <div class="col-lg-3" id="options">
+              <h5 class="Option">ExportSVG</h5>
+              <p class="text-center">Exportation des figures <br/> au format svg</p>
+            </div>
+
+            <div class="col-lg-3" id="options">
+              <h5 class="Option">Upper / Lower threshold</h5>
+              <p class="text-center">Choix du seuil supérieur/inférieur<br/>de valeurs de sélection positive </p>
+            </div>
+            </div>
+        </div>
+          <hr class="featurette-divider">
+
+
+    <!-- FOOTER -->
+
+    <footer class="container text-center">
+      <p class="float-end"><a href="#">Back to top</a></p>
+      <p>&copy; Master Bioinformatique, Université Lyon 1. </p>
+    </footer>
+  </main>
+
+  <!-- FIN FOOTER -->
+
+
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>

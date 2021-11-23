@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Affichage des données</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <!-- Page CSS personnalisée -->
+  <link rel="stylesheet" href="/css/css_proj.css">
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src='./d3.js' charset="utf-8"></script>
+  <style media="screen">
+    .node {
+      cursor: pointer;
+    }
+    .block {
+      cursor: pointer;
+    }
+    .cblock {
+      cursor: none;
+    }
+    .slink {
+      stroke: red;
+      stroke-width: 10px;
+      opacity: 0.3;
+      fill: none;
+    }
+    .internal {
+        font: 10px sans-serif;
+    }
+    div.tooltip {
+      position: absolute;
+      text-align: center;
+      width:auto;
+      height: auto;
+      padding: 10px;
+      font: 16px sans-serif;
+      background: lightsteelblue;
+      border: 10px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    div.legend {
+      position: absolute;
+      text-align: left;
+      width: 450px;
+      height: 28px;
+      padding: 2px;
+      font: 24px sans-serif;
+      border: 0px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    div.dblegend {
+      position: absolute;
+      text-align: left;
+      padding: 2px;
+      font: 12px sans-serif;
+      border: 2px;
+      border-radius: 1px;
+      pointer-events: none;
+    }
+    div.testnav {
+      position: sticky;
+      text-align: left;
+      top:150px;
+      left:50px;
+      width: 250px;
+      height: 28px;
+      padding: 2px;
+      font: 12px sans-serif;
+      border: 0px;
+      border-radius: 8px;
+    }
+    .testnav  a:hover {color:red;}
+    div.demo {
+      margin-top: 150px; /* correctif utile si jquery n'est pas chargé (ex : hors-ligne) */
+      position: relative;
+      width: 100%;
+      min-height: 100%;
+      overflow-y: visible;
+      overflow-x: hidden;
+    }
+    .dropdown-menu {
+      height: auto;
+      max-height: 200px;
+      overflow-x: hidden;
+    }
+  </style>
+<% include ../partials/head %>
+</head>
+<body>
+  <div class="demo">
+    <nav id="main-nav" class="navbar navbar-default navbar-fixed-top">
+      <% include ../partials/header %>
+      <!-- Division pour eventuel bouton crossref -->
+      <div class="btn-group" id="crossref">
+      </div>
+      <!-- Bouton Action -->
+      <div class="btn-group" role="group" id="action">
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="top" title="Choose action on node"  >
+          On click
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#" id="switch">Switch children</a></li>
+          <li><a href="#" id="collapse">Collapse/Expand</a></li>
+          <li><a href="#" id="subtree">Sub Tree/Upper Tree</a></li>
+        </ul>
+      </div>
+      <!-- Bouton Collapse -->
+      <button type="button" class="btn btn-default btn-sm" aria-label="Collapse" data-toggle="tooltip" data-placement="top" title="Collapse the tree" id="globalcollapse">
+        <span>Compact tree</span>
+      </button>
+      <!-- Bouton Exapand all -->
+      <button type="button" class="btn btn-default btn-sm" aria-label="Expand"  data-toggle="tooltip" data-placement="top" title="Expand the tree (takes time on big trees!)" id="globalexpand">
+        <span>Expand tree</span>
+      </button>
+      <!-- Bouton Increase width -->
+      <button type="button" class="btn btn-default btn-sm" aria-label="Left Align" id="moreWidth"  data-toggle="tooltip" data-placement="top" title="Increase tree width">
+        <span>widthSize</span>
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+      </button>
+      <!-- Bouton Reduce width -->
+      <button type="button" class="btn btn-default  btn-sm  " aria-label="Left Align" id="lessWidth"  data-toggle="tooltip" data-placement="top" title="Reduce tree width">
+        <span>widthSize</span>
+        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+      </button>
+      <!-- Bouton Increase height -->
+      <button type="button" class="btn btn-default btn-sm" aria-label="Left Align" id="moreHeigth"  data-toggle="tooltip" data-placement="top" title="Increase tree height">
+        <span>heightSize</span>
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+      </button>
+      <!-- Bouton Reduce height -->
+      <button type="button" class="btn btn-default btn-sm" aria-label="Left Align" id="lessHeigth"  data-toggle="tooltip" data-placement="top" title="Reduce tree height">
+        <span>heightSize</span>
+        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+      </button>
+      <!-- Début modif -->
+      <!-- Bouton  Export -->
+      <div class="btn-group" role="group" id="export">
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="top" title="export figure">
+          Export
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#" id="tree">Tree</a></li>
+          <li><a href="#" id="selecp">Alignment</a></li>
+        </ul>
+      </div>
+      <!-- Bouton  Alignement -->
+      <div class="btn-group" role="group" id="alignement">
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="top" title="Choose type of alignment"  >
+          AlignmentNature
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#" id="aminoacid">Amino Acids</a></li>
+          <li><a href="#" id="nucleotid">Codons</a></li>
+        </ul>
+      </div>
+      <!-- Champs Seuils sup. et inf. -->
+      <label for="ps-threshold-high" style="font-size: 12px;">Upper threshold:</label><input type="number" id="ps-threshold-high" min="0.0" step="0.05" placeholder="PS Threshold" value="1.0" style="width: 5em; font-size: 12px;"/>
+      <label for="ps-threshold-low"  style="font-size: 12px;">Lower threshold:</label><input type="number" id="ps-threshold-low" min="0.0" step="0.05" placeholder="PS Threshold" value="0.3" style="width: 5em; font-size: 12px;"/>
+      <!-- Fin modif -->
+  </nav>
+  <!-- <div  class="testnav" id="testnav" ></div> -->
+    <div id="svg-container">
+      <div  style="border:2px solid lightgrey; float: left; overflow-y: auto; width: 50%;" id="tree-container">
+        <svg id="svg1"></svg>
+      </div>
+      <div style="border:2px solid lightgrey; overflow-x: auto; overflow-y: auto;" id="alignment-container" >
+        <svg id="svg2"></svg>
+      </div>
+    </div>
+  </div> <!-- <demo > -->
+</body>
+<script src="xmltree.js" charset="utf-8"></script>
+<script src="layout.js" charset="utf-8"></script>
+<script src="links.js" charset="utf-8"></script>
+<script src="svgEvents.js" charset="utf-8"></script>
+<!-- <script src='./speciestree/monarbre.js' charset="utf-8"></script> -->
+<!-- <script src='./speciestree/palette.js' charset="utf-8"></script> -->
+<!-- Code JS pour l'affichage de l'arbre  -->
+<script type="text/javascript">
+  // Recuperation des variables envoyee via Express
+  // ----------------------------------------------
+  var recTree = <%- arbre %>;
+  var pattern = <%- pattern %>;
+  // Variables globales
+  // ------------------
+  var treeRoot;
+  var cladeRoot;
+  var layout = d3.layout.cladogram();   // Fonction  D3 qui transforme les donnees en cladograme
+  var nodeWidth = 80;                  // Largeur
+  var nodeHeigth = 15;                  // Hauteur
+  var x0Align = 350;                  // Cordonee horizonatle de l'alignement
+  var stringWidth;                      // Largeur affichage arbre
+  var tagSimpleGene = false;            // True si arbre de gene de type PhyloXML, False si arbre de gene de type RecPhyloXML
+  var svg;                              // La div SVG
+  var g;                                // Conteneur principal
+  var diagonal = svgLinks.shoulder;     // cf links.js
+  var symbol = d3.symbol().size(128);   // Symbol des noeuds
+  var color = d3.scaleOrdinal(d3.schemeCategory20); // Echelle des couleurs
+  var options ;                         // Options d'affichage
+  var action;                           // Action associee au clic
+  var selectedCrossref ;                // Reference croisée choisie (nom de la sequence)
+  var selectedCrossrefURL ;             // URL associe
+  var crossref;                         // Objet decrivant les differentes ref croisees associees a la famille
+  var spattern=pattern.split('\n');     // pattern a chercher et a afficher dans l'arbre
+  // Exemple getfam?fam=CLU_005912_4_2_C&pattern=0:PETMA_GL476433.PE1+0:ANOCA_6.PE486+1:XENTR_GL172641_1.PE38+1:XENTR_GL172642_1.PE97
+  pattern=spattern;
+  var patterns= [];
+  var div;
+  var myStorage = window.localStorage;    // utilisation de localStorage pour consrever les preferences
+  // ==============================================================
+  // Début modif : variables globales
+  // ==============================================================
+  var displaySeqType = 'AA';
+  var hStepBase = 12;
+  var psThresholdHigh = $('#ps-threshold-high').val() || 1.0;
+  var psThresholdLow = $('#ps-threshold-low').val() || 0.3;
+  var psThresholdHighBgColor = "#6665FC";
+  var psThresholdLowBgColor = "#f7dc6f";
+  var psBelowThresholdBgColor = "beige";
+  var psMissingBgColor = "#aaa";
+  var psThresholdHighTxtColor = "#fff";
+  var psThresholdLowTxtColor = "#000";
+  var psBelowThresholdTxtColor = "#000";
+  var psMissingTxtColor = "#aaa";
+  var projOffsetLeft = 700;
+  var psThresholdsChanged = false;
+  // ==============================================================
+  // Fin modif : variables globales
+  // ==============================================================
+  if (!isStorageSupported(myStorage)) {
+    console.log("window.localStorage problem");
+    $(testnav).append('It seems that <b>window.localStorage</b> is full or is not supported by your browser<br>Please check this <a href="/clear/">here</a> ');
+  }
+  else {
+    main_display();
+  }
+// Fonction d'affichage principale
+// ---------------------------------------
+function  main_display() {
+  // Arbre d'especes (lu dans monarbre.js)
+  // var speciesTreeRoot = d3.hierarchy(cladeRootSpecies, function(d) {
+  //   return d.clade;
+  // });
+  // Transforme le tableau de [index:sequences] en tableau de tableau de [sequences].
+  // a ameliorer, pas tres propre
+  pattern.forEach(function(d,i){
+    var buf = d.split(':');
+    if (buf.length > 1){
+      var indexPatt = buf[0];
+      if (!patterns[indexPatt]){
+        patterns[indexPatt]  = [];
+      }
+      patterns[indexPatt].push(buf[1]);
+    }
+    else {
+      console.log("PATTERN ERROR : "+buf);
+    }
+  });
+  // Test si l'arbre est du type
+  // -recPhymloXML ( pas de distance, evenements de perte et transfert)
+  // -phyloxml ()
+  if (recTree.recGeneTree) {
+    cladeRoot = recTree.recGeneTree.phylogeny.clade;
+    // treeRoot = recTree.recGeneTree.phylogeny;
+  }
+  if (recTree.recPhylo) {
+    cladeRoot = recTree.recPhylo.recGeneTree.phylogeny.clade;
+    // treeRoot = recTree.recPhylo.recGeneTree.phylogeny;
+  }
+  if (recTree.phyloxml) {
+    cladeRoot = recTree.phyloxml.phylogeny.clade;
+    // treeRoot = recTree.phyloxml.phylogeny;
+    tagSimpleGene = true;
+  }
+  // Creation du SVG
+  // ===============
+  // Definit  la div tooltip
+  div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+  svg1 = d3.select("#svg1");   // selectionne la div svg1
+  g = svg1.append("g")      // ajoute element au svg1
+    .attr("id", "treeAlign");
+  var transition = d3.transition();
+  margin = {
+    top: 100,
+    down: 20,
+    left: 200,
+    right: 300
+  }
+  // Option d'affichage
+  stringOptions = myStorage.getItem("options");
+  if (stringOptions === null || stringOptions === undefined || stringOptions === "undefined"){
+    stringOptions = "name,species";
+  }
+  options = stringOptions.split(",");
+  // Action associee au click
+  action = svgEvents.switchChildren;
+  var stringAction = myStorage.getItem("action");
+  if ((stringAction === null )||(stringAction === undefined)||(stringAction === "undefined")){
+    stringAction = "Collapse/Expand";
+    myStorage.setItem("action",stringAction);
+  }
+  switch (myStorage.getItem("action")) {
+    case "Switch children":
+      action = svgEvents.switchChildren;
+      break;
+    case "Collapse/Expand":
+      action = svgEvents.collapse;
+      break;
+    case "Sub Tree/Upper Tree":
+      action = svgEvents.focus;
+      break;
+    default:
+  }
+  // Largeur de l'arbre
+  if (tagSimpleGene === false) {
+    nodeWidth = nodeWidth / 5 ;
+  }
+  stringWidth = myStorage.getItem("width");
+  if ((stringWidth === null )||(stringWidth === undefined)||(stringWidth === "undefined")){
+    stringWidth = nodeWidth;
+    myStorage.setItem("width",stringWidth);
+  }
+  // Concerne les arbres recphyloxml
+  var flatTreeConfig = {
+    transferBack :false,
+    speciationLoss : false,
+    speciationOutLoss : false,
+  }
+  // Operation effectuee si il s'agt d'un arbre RecPhyloXML
+  if (tagSimpleGene === false) {
+    // cladeRoot est la racine hierarchisee en clade avec des modifs
+    // specifiques aux arbres recPhyloXML
+    cladeRoot =  xmlparser.flatTree(cladeRoot,flatTreeConfig);
+  }
+  var _cladeRoot = null;
+  var _Parent = null;
+  treeRoot = d3.hierarchy(cladeRoot, function(d) {
+    return d.clade;
+  });
+  addNumberSeqSpec(treeRoot);
+  updateLayout(cladeRoot,1);
+}
+// Definitions des autres fonctions
+// --------------------------------
+// Fonction de mise a jour de l'affichage
+// ---------------------------------------
+function updateLayout(cRoot,firstLoad=0) {
+  // Suppression de l'ancien affichage de l'alignement et du graphe
+  d3.selectAll('#ps-graph, #sequences-container').remove();
+  var treeRoot = d3.hierarchy(cRoot, function(d) {
+    return d.clade;
+  });
+  treeRoot.each(function (d) {
+    var eventsRec = d.data.eventsRec;
+    // Test si on a un noeud enrichi avec l'info eventsRec (type RecPhyloXML) ou non (type phyloxml)
+    if (eventsRec){
+      d.data.lastEvent = eventsRec[eventsRec.length - 1];
+    }
+    else {
+      // Lors de la premiere lecture de l'arbre phyloxml, il n'y a pas de data.lastEvent defini aux noeuds
+      // (Sauf les noeuds ecrases par la monophylie)
+      // Mais ensuite ils sont definis : on choisit "speciation" meme si il ne s'agit pas d'une speciation en
+      // realité, mais cela permet d'utiliser les code graphiques de speciation. eventType peut etre "speciation".
+      // Par contre il ne doit plus etre   "collapsed" car c'est lie a la representation dans le DOM. Utiliser nodeinfo.status
+      if (d.children) {
+        if (!d.data.lastEvent) {
+          d.data.lastEvent =  {eventType : "speciation"};
+        }
+      }
+    }
+  });
+  layout.nodeSize([nodeWidth, nodeHeigth]); // *i*
+  layout(treeRoot);
+  // Traitement des distances dans le cas d'un arbre de gene de type phyloxml
+  if (tagSimpleGene) {
+    phylogeny(treeRoot,nodeWidth);
+  } else {
+    phylogeny_setloss(treeRoot,nodeWidth);
+  }
+  updateSvg(treeRoot,firstLoad);
+}
+// Fonction principale : mise a jour du svg
+// ----------------------------------------
+function updateSvg(treeRoot,firstLoad ,config = {}) {
+  // ==============================================================
+  // Début modif : variables pour graphe et séquences
+  // ==============================================================
+  // Ajustement du pas selon le type de séquences affichées
+  var hStep = displaySeqType == 'AA' ? hStepBase : hStepBase*3;
+  var seqblocks = d3.selectAll('.seqblock');
+  var results = xmlparser.flatTree(recTree.phyloxml.phylogeny.statistics.results);
+  results = results.split(' ');
+  var psResultsDataset = [];
+  var site = 0;
+  var stat = 0.0;
+  results.forEach(function(d,i) {
+    d = d.split(':');
+    result = {site:d[0], stat:d[1]};
+    psResultsDataset.push(result);
+  });
+  var psGraphMargins = {top: 20, right: 50, bottom: 50, left: 380};
+  var psGraphWidth = psResultsDataset.length*hStep;
+  var psGraphHeight = 150;
+  // ==============================================================
+  // Fin modif : variables pour graphe et séquences
+  // ==============================================================
+  var scrollref=0;
+  var configLayout = {
+    layout : config.layout || "cladogramSpecial",
+    links : config.links || "shoulder",
+    symbolSize : config.symbolSize || 128,
+    lengthLinkLoss : config.lengthLinkLoss || 10,
+    linkStrokeSize : config.linkStrokeSize || 2,
+    nodeWidth : config.nodeWidth || 30,
+    nodeHeigth : config.nodeHeigth || 30,
+    margin : config.margin || { top: 10, down: 20, left: 500  , right: 50},
+    color : config.color || {
+      speciation : "#2F4F4F",
+      speciationOutLoss : "#2CA02C",
+      branchingOut : "#D62728",
+      speciationOut : "#2CA02C",
+      bifurcationOut : "#000000",
+      transferBack : "#D62728",
+      duplication : "#9467BD",
+      speciationLoss : "#1F77B4",
+      leaf : "#FF7F0E",
+      loss : "#000000"
+    },
+    symbols : config.symbols || {
+      speciation : "symbolCircle",
+      collapsed : "symbolCircle",
+      speciationOutLoss : "symbolCircle",
+      branchingOut : "symbolSquare",
+      speciationOut : "symbolCircle",
+      bifurcationOut : "symbolCircle",
+      transferBack : "symbolDiamond",
+      duplication : "symbolSquare",
+      speciationLoss : "symbolCircle"
+    }
+  }
+  var nodes = treeRoot.descendants();
+  var links = treeRoot.links();
+  // Coloration du pattern si il existe
+  if ((pattern != "none") && (pattern !== ' ') && (pattern !== undefined)) {
+    // Boucle sur les differents patterns
+    patterns.forEach(function (d,i) {
+      // Traite le pattern d avec comme index i
+      // var subNodes = subnode(nodes,d,i);
+      scrollref = subnode(nodes,d,i);
+    });
+  }
+  var minX = d3.min(nodes, function(d) {
+    return d.x;
+  });
+  var maxX = d3.max(nodes, function(d) {
+    return d.x;
+  });
+  var widthSVG = maxX - minX;
+  var minY = d3.min(nodes, function(d) {
+    return d.y;
+  });
+  var maxY = d3.max(nodes, function(d) {
+    return d.y;
+  });
+  var heightSVG = maxY - minY;
+  var longueurProjAjouteeSvgX = psResultsDataset.length*hStep - 520;
+  var hauteurProjAjouteeSvgY = -200;
+  var decalageProjSvgY = -90;
+  svg1.attr("width", widthSVG + margin.right + margin.left);
+  svg1.attr("height", heightSVG + margin.top + margin.down+400      + hauteurProjAjouteeSvgY);
+  g.attr("transform", "translate(" + (margin.right - minX - 250) + "," + (margin.top - minY + 200     + decalageProjSvgY) + ")")
+  // ====================
+  //  D3: Objets LINK
+  // ====================
+  var link = g.selectAll(".link").data(links);  // associe l'element link a la donnee links
+  //EXIT gere les elements qui ont disparu
+  link.exit().remove();
+  //ENTER gere les elements nouveaux
+  var linkEnter =
+    link
+    .enter()
+    .append("path")
+    .attr("class", "link");
+  linkEnter
+    .merge(link)  // fusionne les nouveaux elements avec les anciens
+    .attr("fill","none")
+    .attr("stroke-width",configLayout.linkStrokeSize)
+    .attr("stroke",function (d) {
+      if (d.target.data.lastEvent !== undefined) {
+        var pa = d.target.data.lastEvent.pattern;
+        if (pa !== undefined) {
+          return "red";
+        }
+      }
+      if(d.target.data.deadSpecies)
+        {
+          return "#fff";
+        }
+      else {
+        return "#0e2e2e";
+      }
+    })
+    .on('mouseover',function (d){
+      var pattIndex =  d.target.data.lastEvent.pattern;
+      if (pattIndex !== undefined) {
+        var sel1 =g.selectAll(".link").filter(function(e) {
+          var pa = e.target.data.lastEvent.pattern;
+          if (pa !== undefined) {
+            // pa est le tableau des index des pattern  associee au noeud
+            // pattIndex[0] est l'index de la pattern  associee au noeud survole
+            return (pa.indexOf(pattIndex[0]) > -1)
+          }
+          return (false)
+        });
+        sel1.style("stroke-width","10")
+      }
+    })
+    .on('mouseout',function (d){
+      var pattIndex =  d.target.data.lastEvent.pattern;
+      if (pattIndex !== undefined) {
+        var sel1 =g.selectAll(".link").filter(function(e) {
+          var pa = e.target.data.lastEvent.pattern;
+          if (pa !== undefined) {
+            // pa est le tableau des index des pattern  associee au noeud
+            // pattIndex[0] est l'index de la pattern  associee au noeud survole
+            return (pa.indexOf(pattIndex[0]) > -1)
+          }
+          return (false)
+        });
+        sel1.style("stroke-width",configLayout.linkStrokeSize)
+      }
+    })
+    .attr("d", diagonal)
+    .attr('stroke-dasharray',function(d){
+      var et = d.target.data.lastEvent.eventType;
+      // var sl = d.target.data.lastEvent.speciesLocation;
+      // if (et === "transferBack" || et === "bifurcationOut" || sl == "Out") return '5,5';
+      if (et === "transferBack" || et === "bifurcationOut") return '5,5';
+    });
+  // ====================
+  // D3:  Objets NODE
+  // ====================
+  var node = g.selectAll(".node").data(nodes);
+  //EXIT
+  node.exit().remove();
+  //ENTER
+  var nodeEnter =
+    node
+    .enter()
+    .append("g")
+    .attr("class", "node");
+  nodeEnter
+    .append("g")
+    .attr("class", "gsymbol")
+    .append("path")
+    .attr("class", "symbol");
+  nodeEnter
+    .append("text")
+    .attr("class", "label")
+    .on("click", function(d) {
+      if (d.data.lastEvent.crossref) {
+        // Si la balise crossref est presente on fait un lien vers l'url
+        // qui requete l'identifiant dans la base de donnees selectionnee
+        var cross=d.data.lastEvent.crossref;
+        if (selectedCrossref !== null) {
+          name = cross[selectedCrossref];
+          url = selectedCrossrefURL.replace("IDENTIFIANT",name);
+        }
+        window.open(url);
+      }
+    });
+  nodeEnter
+    .append("text")
+    .attr("class", "internal");
+  //ENTER + UPDATE
+  var allNodes =
+    nodeEnter
+    .merge(node)
+    .attr("transform", function(d) {
+      if (d.data.lastEvent.eventType === "loss") {
+        return "translate(" + [d.x, d.y] + ")";
+      }
+      else {
+        return "translate(" + [d.x, d.y] + ")"; // *i*
+      }
+    })
+    .on("click",action);
+  allNodes
+    .select(".gsymbol")
+    .attr("transform", function(d) {
+      var str = "";
+      if (d.data.lastEvent.eventType === "loss") {
+        str += "rotate(45)";
+      }
+      if (d.data.lastEvent.eventType === "leaf")  {
+        str += "rotate(90)";
+      } else {
+        str += "";
+      }
+      return str;
+    });
+  allNodes
+    .select(".symbol")
+    .attr("fill", function(d) {//Couleur de remplissage  du symbol
+      switch (d.data.lastEvent.eventType) {
+        case "monophyletic":
+          // return setLeafColour(d.data.lastEvent.speciesLocation);
+          break;
+        case "speciation":
+          return configLayout.color.speciation
+          break;
+        case "speciationOutLoss":
+          return configLayout.color.speciationOutLoss
+          break;
+        case "branchingOut":
+          return configLayout.color.branchingOut
+          break;
+        case "speciationOut":
+          return configLayout.color.speciationOut
+          break;
+        case "bifurcationOut":
+          return configLayout.color.bifurcationOut
+          break;
+        case "transferBack":
+          return configLayout.color.transferBack
+          break;
+        case "duplication":
+          return configLayout.color.duplication
+          break;
+        case "speciationLoss":
+          return configLayout.color.speciationLoss
+          break;
+        case "leaf":
+          // return setLeafColour(d.data.lastEvent.speciesLocation);
+          break;
+        case "loss":
+          return configLayout.color.loss
+          break;
+        default:
+        }
+      })
+    .attr("d", function(d) { //Type de symbol
+       // Verification si le noeud est collapse
+      if (d.data.nodeinfo) {
+          if (d.data.nodeinfo.status === "collapsed") {
+            return symbol.type(d3.symbolCircle)()
+          }
+      }
+      switch (d.data.lastEvent.eventType) {
+        case "monophyletic":          // cas ou le noeud monophyletic n'est pas pas collapse
+          return symbol.type(d3[configLayout.symbols.speciation])()
+          break;
+        case "speciation":
+          return symbol.type(d3[configLayout.symbols.speciation])()
+          break;
+        case "speciationOutLoss":
+          return symbol.type(d3[configLayout.symbols.speciationOutLoss])()
+          break;
+        case "branchingOut":
+          return symbol.type(d3[configLayout.symbols.branchingOut])()
+          break;
+        case "speciationOut":
+          return symbol.type(d3[configLayout.symbols.speciationOut])()
+          break;
+        case "bifurcationOut":
+          return symbol.type(d3[configLayout.symbols.bifurcationOut])()
+          break;
+        case "transferBack":
+          return symbol.type(d3[configLayout.symbols.transferBack])()
+          break;
+        case "duplication":
+          return symbol.type(d3[configLayout.symbols.duplication])()
+          break;
+        case "speciationLoss":
+          return symbol.type(d3[configLayout.symbols.speciationLoss])()
+          break;
+        case "leaf":
+          return symbol.type(d3.symbolTriangle)()
+          break;
+        case "loss":
+          return symbol.type(d3.symbolCross)()
+        default:
+      }
+    })
+    .attr("stroke-width", "0px")
+    .filter(function (d) {
+       return d.data._clade? true : false;
+    })
+    .attr("fill", "white")
+    .attr("stroke-width", "2px")
+    .attr("stroke", function(d) {   //Couleur de trait du symbol
+      switch (d.data.lastEvent.eventType) {
+        case "speciation":
+          return configLayout.color.speciation
+          break;
+        case "speciationOutLoss":
+          return configLayout.color.speciationOutLoss
+          break;
+        case "speciationOut":
+          return configLayout.color.speciationOut
+          break;
+        case "bifurcationOut":
+          return configLayout.color.bifurcationOut
+          break;
+        case "transferBack":
+          return configLayout.color.transferBack
+          break;
+        case "duplication":
+          return configLayout.color.duplication
+          break;
+        case "speciationLoss":
+          return configLayout.color.speciationLoss
+          break;
+        case "leaf":
+          return configLayout.color.leaf
+          break;
+        case "monophyletic":
+          // return configLayout.color.leaf
+          // return setLeafColour(d.data.lastEvent.speciesLocation)
+          break;
+        case "loss":
+          return configLayout.color.loss
+          break;
+        default:
+      }
+    });
+  allNodes
+    .select(".label")
+    .transition()
+    .attr("y", function(d) {
+      // return d.children ? -8 : 3;
+      return d.children ? 0 : 4;
+    })
+    .attr("x", function(d) {
+      // return d.children ? -8 : 8;
+      return d.children ? 0 : 12;
+    })
+    .style("text-anchor", function(d) {
+      return d.children ? "end" : "start";
+    })
+    .text(function(d) {
+      var name = "";
+      if (d.data.nodeinfo) {
+        if (d.data.nodeinfo.status === "collapsed") {
+            name += "seq:"+d.data.nbseqspe.nbSeq + " spe:"+d.data.nbseqspe.nbSpe;
+        }
+      }
+      if (d.data.name && options.includes("name") && d.data.lastEvent.eventType === "leaf") {
+        if (d.data.lastEvent.crossref) {
+          var cross=d.data.lastEvent.crossref;
+          if (selectedCrossref !== null) {
+            name += cross[selectedCrossref];
+          }
+        }
+        else {
+          name += (d.data.name || d.data.lastEvent.geneName);
+        }
+        if (d.data.lastEvent.pattern !==undefined) {
+          name = ">>>>"+name+"<<<<";
+        }
+      }
+      if (options.includes("species")&& d.data.lastEvent.eventType === "leaf") {
+        // name += " " + d.data.lastEvent.speciesLocation.replace("(INTERNAL)","") ;
+      }
+      if (options.includes("species")&& d.data.lastEvent.eventType === "monophyletic") {
+        // name += " " + d.data.lastEvent.speciesLocation.replace("(INTERNAL)","") ;
+      }
+      if (d.data.lastEvent.destinationSpecies) {
+        name += " ( -> " + d.data.lastEvent.destinationSpecies + ")";
+      }
+      return name;
+    })
+    .style("fill",function (d) {
+      // if (d.data.name && d.data.lastEvent.eventType === "leaf") {
+      //   return setLeafColour(d.data.lastEvent.speciesLocation);
+      // }
+      // if (d.data.name && d.data.lastEvent.eventType === "monophyletic") {
+      //   return setLeafColour(d.data.lastEvent.speciesLocation);
+      // }
+    })
+    .style("font-family","sans-serif")
+    .style("font-size","12px")
+    .style("font-weight","bold")
+    .style("text-decoration",function (d) {
+      var pa = d.data.lastEvent.pattern;
+      if (pa != undefined) {
+        return "wavy underline overline";
+      }
+      else return "none";
+    });
+  allNodes
+    .select(".internal")
+    .transition()
+    .attr("y", 11)
+    .attr("x", -10)
+    .style("text-anchor","end")
+    .text(function(d) {
+      var name = "";
+      if (options.includes("intname")) {
+        if (d.data.confidence) {
+          var name = d.data.confidence._text;
+        }
+      }
+      return name
+    });
+  // =======================
+  // Selection des feuilles
+  // =======================
+  var leaves = nodes.filter(function (e) {
+      return !e.children;
+    });
+  // ==============================================================
+  // Début modif : graphe des résultats de sélection positive
+  // ==============================================================
+  var svg2 = d3.select("#svg2");
+  svg2.attr("width", widthSVG + margin.right + longueurProjAjouteeSvgX + 400)
+    .attr("height",  heightSVG + margin.top + margin.down +200);
+  // Fonction de calcul de la statistique maximale dans les résultats
+  function maxStat(results) {
+    var currentmax = results[0].stat;
+    results.forEach(function(res) {
+      if (res.stat > currentmax) {
+        currentmax = res.stat;
+      }
+    });
+    return currentmax;
+  }
+  // Définition de l'échelle pour l'axe x
+  var x = d3.scaleLinear()
+    .domain([1, psResultsDataset.length+1])
+    .range([0, psGraphWidth]);
+  // Définition de l'échelle pour l'axe y
+  var y = d3.scaleLinear()
+    .domain([0, maxStat(psResultsDataset)])
+    .range([psGraphHeight, 0]);
+  // Ajout du graphe des résultats au SVG
+  var psGraph = svg2.append('g')
+    .attr('id', 'ps-graph')
+    .attr('transform', 'translate('+psGraphMargins.left+', '+psGraphMargins.top+')');
+  // Ajout de l'axe x au graphe
+  psGraph.append('g')
+    .attr('transform', 'translate(0,' + psGraphHeight + ')')
+    .call(d3.axisBottom(x).ticks(psResultsDataset.length/5)); // graduations tous les 5 codons / AA
+  // Ajout de l'axe y au graphe
+  psGraph.append('g')
+    .call(d3.axisLeft(y));
+  // Ajout du seuil supérieur au graphe (à y = seuil haut)
+  psGraph.append('line')
+    .attr('x1', x(1))
+    .attr('y1', y(psThresholdHigh))
+    .attr('x2', x(psResultsDataset.length+1))
+    .attr('y2', y(psThresholdHigh))
+    .style('stroke', '#E37957')
+    .style('stroke-width', 2+'px')
+    .style('stroke-dasharray', ('4, 4'));
+  // Ajout du seuil inférieur au graphe (à y = seuil bas)
+  psGraph.append('line')
+    .attr('x1', x(1))
+    .attr('y1', y(psThresholdLow))
+    .attr('x2', x(psResultsDataset.length+1))
+    .attr('y2', y(psThresholdLow))
+    .style('stroke', '#E37957')
+    .style('stroke-width', 2+'px')
+    .style('stroke-dasharray', ('4, 4'));
+  // // Suppression du graphe
+  // psGraph.exit().remove();
+  // Association des données aux futurs rectangles
+  var rects = psGraph.selectAll('.psrects')
+    .data(psResultsDataset);
+  // Affichage des rectangles
+  var i_rect = 1;
+  rects.enter().append('rect')
+    .attr('class', 'psrects')
+    .attr('title', function(d) {
+      return d.site;
+    })
+    .attr('width', function(d) { return hStep; })
+    .attr('height', function(d) { return y(0)-y(d.stat); })
+    .attr('x', function(d) { return x(d.site); })
+    .attr('y', function(d) { return y(d.stat); })
+    .style('fill', function(d) {
+      if (d.stat > psThresholdHigh) {
+        return psThresholdHighBgColor;
+      } else if (d.stat > psThresholdLow) {
+        return psThresholdLowBgColor;
+      } else if (d.stat > 0) {
+        return psBelowThresholdBgColor;
+      } else {
+        return psMissingBgColor;
+      }
+    })
+    .style('stroke', 'black')
+    .style('stroke-width', 1+'px');
+  psGraph.on('click', function() {
+    var coords = d3.mouse(this);
+  });
+  // ==============================================================
+  // Fin modif : graphe des résultats de sélection positive
+  // ==============================================================
+  // ==============================================================
+  // Début modif : blocs de séquences
+  // ==============================================================
+  seq_dataset = [];
+  var seq_lg = xmlparser.flatTree(recTree.phyloxml.phylogeny.seqIDMax.lengthMax);
+  var leaves_sequences = leaves.filter(function(d) {return(d.data.lastEvent.dnaAlign)});
+  leaves_sequences.forEach (function (d,i) {
+    var leaf_name = d.data.lastEvent.name;
+    var dna_sequence = d.data.lastEvent.dnaAlign;
+    var aa_sequence = d.data.lastEvent.aaAlign;
+    var lengthmax=d.data.lastEvent.lengthMax;
+    var locnode = {
+      name:d.data.name,
+      y:d.y,
+      dna:d.data.lastEvent.dnaAlign,
+      aa:d.data.lastEvent.aaAlign,
+    };
+    seq_dataset.push(locnode);
+  });
+  var seqDiv = d3.select('#svg2')
+    .append('g')
+    .attr('id', 'sequences-container')
+    .attr("transform", "translate(" + (margin.right - minX - 300) + "," + (margin.top - minY + 200  + decalageProjSvgY) + ")")
+  // Association des données aux futurs blocs de séquences
+  var seqblocks = seqDiv.selectAll('.seqblock')
+    .data(seq_dataset);
+  // Création et positionnement des blocs de séquences
+  var seqblocksEnter = seqblocks.enter().append('g')
+    .attr('class', 'node seqblock')
+    .attr('transform', function(d) {
+      var transx = psGraphMargins.left;
+      var transy = d.y ; // fonctionne seulement avec nodeHeight = 15 *amod*
+      return 'translate('+transx+', '+transy+')';
+    });
+    seqblocksEnter.append("text")
+      .attr('class', 'sequence-name')
+      .text(function(d) {
+        return d.name;
+      })
+      .attr('transform', 'translate('+'-'+(Math.floor(seq_lg)+300)+','+5+')');
+  var maxYSequences = function(seqDataset) {
+    var currentmax = seqDataset[0].y;
+    seqDataset.forEach(function(seq) {
+      currentmax = seq.y > currentmax ? seq.y : currentmax;
+    });
+    return currentmax;
+  }
+  var maxYSeq = maxYSequences(seq_dataset);
+  var minYSequences = function(seqDataset) {
+    var currentmin = seqDataset[0].y;
+    seqDataset.forEach(function(seq) {
+      currentmin = seq.y < currentmin ? seq.y : currentmin;
+    });
+    return currentmin;
+  }
+  var minYSeq = minYSequences(seq_dataset);
+  // Alignement : ajout des conteneurs au SVG
+  var seqTextAA = seqblocksEnter.append('g')
+      .attr('class', 'aa-sequence')
+      .style('display', function() {
+        return displaySeqType == 'AA' ? 'block' : 'none';
+      });
+  var seqTextNuc = seqblocksEnter.append('g')
+      .attr('class', 'dna-sequence')
+      .style('display', function() {
+        return displaySeqType == 'Nuc' ? 'block' : 'none';
+      });
+  // Alignement : ajout des rectangles (version séquence entière)
+  var oneSeqAA = d3.select('.aa-sequence');
+  var oneSeqDna = d3.select('.dna-sequence');
+  for (i=0; i<psResultsDataset.length; i++) {
+    if (displaySeqType == 'AA') {
+      // Ajout d'un rectangle coloré par AA
+      oneSeqAA.append('rect')
+        .attr('x', function(d) {return i*hStep;})
+        .attr('width', hStep)
+        .attr('y', function(d) {return minYSeq - d.y - hStepBase;})
+        .attr('height', maxYSeq - minYSeq + hStepBase*2)
+        .style('fill', () => {
+          if (psResultsDataset[i].stat > psThresholdHigh) {
+            return psThresholdHighBgColor;
+          } else if (psResultsDataset[i].stat > psThresholdLow) {
+            return psThresholdLowBgColor;
+          } else if (psResultsDataset[i].stat > 0) {
+            return psBelowThresholdBgColor;
+          } else {
+            return psMissingBgColor;
+          }
+        });
+    } else {
+      // Ajout d'un rectangle coloré par codon
+      oneSeqDna.append('rect')
+        .attr('x', function(d) {return i*hStep;})
+        .attr('width', hStep)
+        .attr('y', function(d) {return minYSeq - d.y - hStepBase;})
+        .attr('height', maxYSeq - minYSeq + hStepBase*2)
+        .style('fill', () => {
+          if (psResultsDataset[i].stat > psThresholdHigh) {
+            return psThresholdHighBgColor;
+          } else if (psResultsDataset[i].stat > psThresholdLow) {
+            return psThresholdLowBgColor;
+          } else if (psResultsDataset[i].stat > 0) {
+            return psBelowThresholdBgColor;
+          } else {
+            return psMissingBgColor;
+          }
+        });
+    }
+  }
+  // Alignement : ajout des AA / codons (version séquence entière)
+  seqTextAA.append('text')
+    .style('letter-spacing', (hStepBase - 10)+'px') // Espacement des lettres pour correpondre au graphe
+    .attr('x', function(d) {return 1;})
+    .attr('y', function(d) {return Math.floor(hStepBase/3);})
+    .text(function(d) {return d.aa;});
+  seqTextNuc.append('text')
+    .style('letter-spacing', (hStepBase - 10)+'px') // Espacement des lettres pour correpondre au graphe
+    .attr('x', function(d) {return 1;})
+    .attr('y', function(d) {return Math.floor(hStepBase/3);})
+    .text(function(d) {return d.dna;});
+}
+  // ==============================================================
+  // Fin modif : blocs de séquences
+  // ==============================================================
+// Fin de la fonction updateSvg
+// ----------------------------
+// Autres fonctions utilitaires
+// ----------------------------
+// Fonction de test du support local.storage
+// ------------------------------------------
+// https://michalzalecki.com/why-using-localStorage-directly-is-a-bad-idea/
+function isStorageSupported(storage) {
+  try {
+    const key = "__some_random_key_you_are_not_going_to_use__";
+    storage.setItem(key, key);
+    storage.removeItem(key);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+// Fonction d'export du SVG
+// ------------------------
+// saveSVG()
+function saveSVG(){
+  // get styles from all required stylesheets
+  // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
+  var style = "\n";
+  var requiredSheets = ['phylogram_d3.css', 'open_sans.css'];
+  console.log('requiredSheets:');
+  console.log(requiredSheets);
+  var img = new Image();
+  var serializer = new XMLSerializer();
+  // prepend style to svg
+  svg1.insert('defs',":first-child");
+  d3.select("svg defs")
+      .append('style')
+      .attr('type','text/css')
+      .html(style);
+  var svgStr = serializer.serializeToString(svg1.node());
+  img.src = 'data:image/svg+xml;base64,'+window.btoa(unescape(encodeURIComponent(svgStr)));
+  window.open().document.write('<p>Please copy or save the the image <img src="' + img.src + '"/>');
+};
+function saveSVGTree(){
+  $("a#tree").css('color', 'red');
+  $("a#selecp").css('color', 'black');
+  // get styles from all required stylesheets
+  // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
+  var style = "\n";
+  // var requiredSheets = ['phylogram_d3.css', 'open_sans.css'];
+  var img = new Image();
+  // prepend style to svg
+  const treeSvg = d3.select('#svg1');
+  treeSvg.insert('defs',":first-child");
+  d3.select("#svg1 defs")
+      .append('style')
+      .attr('type','text/css')
+      .html(style);
+  var as_text = new XMLSerializer().serializeToString(treeSvg.node());
+  img.src = 'data:image/svg+xml;base64,'+window.btoa(unescape(encodeURIComponent(as_text)));
+  window.open().document.write('<p>Please copy or save the the image (it may not display if it is too large) <img src="' + img.src + '"/>');
+};
+function saveSVGAlignment(){
+  $("a#tree").css('color', 'black');
+  $("a#selecp").css('color', 'red');
+  $('.aa-sequence text').css({
+    'font-family':'Courier',
+    'letter-spacing':(hStepBase - 9.6)+'px',
+  });
+  $('.dna-sequence text').css({
+    'font-family':'Courier',
+    'letter-spacing':(hStepBase - 9.6)+'px',
+  });
+  $('.sequence-name').css({
+    'font-family':'Courier',
+  });
+  // get styles from all required stylesheets
+  // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
+  var style = "\n";
+  // var requiredSheets = ['phylogram_d3.css', 'open_sans.css'];
+  var img = new Image();
+  // prepend style to svg
+  const alignmentSvg = d3.select('#svg2');
+  alignmentSvg.insert('defs',":first-child");
+  d3.select("#svg2 defs")
+      .append('style')
+      .attr('type','text/css')
+      .html(style);
+  var as_text = new XMLSerializer().serializeToString(alignmentSvg.node());
+  img.src = 'data:image/svg+xml;base64,'+window.btoa(unescape(encodeURIComponent(as_text)));
+  window.open().document.write('<p>Please copy or save the the image (it may not display if it is too large) <img src="' + img.src + '"/>');
+};
+// Fonction recursive qui renvoie les noeuds ancestraux communs a
+// une liste de feuilles
+// ---------------------------------------------------------------
+function recuAncestors (todo, done) {
+  if (todo.length > 1) {
+    var n1 = todo.shift();
+    var n2 = todo.shift();
+    var anc = n1.path(n2);
+    var maxHeight=0;
+    var n3=n1;
+    anc.forEach(function (d ){
+      if (d.height > maxHeight) {
+        maxHeight = d.height;
+        n3=d;
+      }
+    });
+    todo.splice(0, 0,n3);
+    done.push(n1);
+    done.push(n2);
+    anc = n1.path(n3);
+    anc.forEach(function (d ){
+      done.push(d)
+    });
+    anc = n2.path(n3);
+    anc.forEach(function (d ){
+      done.push(d)
+    });
+    return recuAncestors (todo, done)
+  }
+  else {
+    var n1  = todo.shift();
+    done.push(n1);
+    return (done, [])
+  }
+}
+// Fonction de coloration du resultat d'une recherche de  pattern
+// La variable pattern est ici un tableau du nom des feuilles qui ont matchés
+// --------------------------------------------------------------------------
+function subnode(nodes, pattern, colPattern) {
+  var ancs;
+  var n1;
+  var n2;
+  var n3;
+  var selection = [];
+  var racine = null;
+  // Selection des feuilles
+  var scrollref = 0;
+  nodes.forEach(function (d, i){
+    if (d.depth == 0) {
+      racine = d;
+    }
+    if (d.data.lastEvent.crossref) {
+      // Si la balise crossref est presente on
+      // l'utilise plutot que le nom du gene
+      var cross=d.data.lastEvent.crossref;
+      for(var exKey in cross) {
+        var nomFeuille = cross[exKey];
+        pattern.forEach(function (p){
+          var nomPattern = p.replace(/[\n\r]/g, '');
+          if (nomFeuille === nomPattern) {
+            selection.push(d);
+            scrollref=d.y;
+          }
+        })
+      }
+    }
+    if (d.data.name){
+      var nomFeuille = d.data.name;
+      pattern.forEach(function (p){
+        var nomPattern = p.replace(/[\n\r]/g, '');
+        if (nomFeuille === nomPattern) {
+          selection.push(d);
+          scrollref=d.y;
+          if (!d.data.lastEvent["pattern"]) {
+            d.data.lastEvent["pattern"] = [];
+            }
+            d.data.lastEvent["pattern"].push(colPattern); // un noeud peut etre associe a plusieur palettes
+        }
+      })
+    }
+    var tmp =   removeDuplicates(selection);
+    selection = tmp;
+  });
+  var processed = [];
+  if (selection.length == 1) {
+    selection.push(racine);
+  }
+  var toprocess = selection;
+  recuAncestors(toprocess,processed);
+  var ancestors = processed;
+  nodes.forEach(function (d ){
+    if (ancestors.includes(d)) {
+      if (!d.data.lastEvent["pattern"]) {
+        d.data.lastEvent["pattern"] = [];
+      }
+      d.data.lastEvent["pattern"].push(colPattern); // un noeud peut etre associe a plusieur palettes
+    }
+  });
+  return scrollref;
+}
+// Fonction de calcul de la position  d'un noeud a partir des longueurs
+// de branch_length
+// --------------------------------------------------------------------
+function phylo(n) {
+  var dist = 0.0;
+  if (n && n.data.branch_length != null) {
+    var p = n.parent;
+    dist = parseFloat(n.data.branch_length) + phylo(p);
+    return dist;
+  }
+  return dist;
+}
+// Fonction pour utiliser les lobgueurs de branchede lors de l'affichage
+// d'un arbre
+// ----------------------------------------------------------------------
+function phylogeny(treeRoot,offset) {
+  treeRoot.each(function (d) {
+    var phylodist = phylo(d);
+    d.x = phylodist*offset;
+  });
+}
+// Fonction qui decale la position x d'un "loss"
+// ---------------------------------------------
+function phylogeny_setloss(treeRoot,offset) {
+  treeRoot.each(function (d) {
+    if (d.data.lastEvent.eventType === "loss") {
+     var lospar = d.parent;
+     d.x = (d.x+lospar.x)/2
+    }
+  });
+}
+// Fonction ajoute nb sequences et especes
+// ---------------------------------------
+function  addNumberSeqSpec(treeRoot) {
+  treeRoot.eachAfter(function (d) {
+    var specs = [];
+    if (!d.children) {
+      d.data.nbseqspe =  {nbSeq : 1,nbSpe : 1};
+    }
+    else {
+      var nbseq = 0;
+      var nbspe = 0;
+      var fils = d.children;
+      fils.forEach(function (d){
+        nbseq = nbseq + d.data.nbseqspe.nbSeq;
+        // nbspe = nbspe + d.data.nbseqspe.nbSpe;
+        var spec = getSpec(d);
+        specs = specs.concat(spec);
+      })
+      var tmp = specs;
+      uspecs=removeDuplicates(tmp);
+      nbspe=uspecs.length;
+      d.data.nbseqspe =  {nbSeq :nbseq,nbSpe :nbspe};
+    }
+  });
+}
+// Fonction qui collapse les noeuds d'une certaine profondeur
+// ----------------------------------------------------------
+function expandTree(treeRoot) {
+  treeRoot.each(function (d) {
+    if (d.data.nodeinfo) {
+      if (d.data.nodeinfo.status === "collapsed") {
+        if (d.data._clade) {
+          d.data.clade = d.data._clade;
+          d.data._clade = null;
+          d.data.nodeinfo = {status : "extended"};
+        }
+      }
+    }
+  });
+}
+// Fonction recupere especes
+// -------------------------
+function getSpec (noeud) {
+  if (!noeud.children) {
+    var specs = [];
+    var eventsRec = noeud.data.eventsRec;
+    if (eventsRec) {
+      var lastEvent = eventsRec[eventsRec.length - 1];
+      specs.push(lastEvent.speciesLocation)
+    }
+    else {
+      console.log(" ERROR : NO EVENTS FOR ");
+      console.log(noeud.data);
+    }
+    return specs;
+  }
+  else {
+    var specs = [];
+    var fils = noeud.children;
+      fils.forEach(function (d, i ){
+        var spec = getSpec(d);
+        var tmp = specs.concat(spec);
+        specs = tmp;
+      });
+    return specs;
+  }
+}
+// Fonction qui collapse les noeuds d'une certaine profondeur
+// ----------------------------------------------------------
+function expandTree(treeRoot) {
+  treeRoot.each(function (d) {
+    if (d.data.nodeinfo) {
+      if (d.data.nodeinfo.status === "collapsed") {
+        if (d.data._clade) {
+          d.data.clade = d.data._clade;
+          d.data._clade = null;
+          d.data.nodeinfo = {status : "extended"};
+        }
+      }
+    }
+  });
+}
+// Fonction qui collapse les noeuds d'une certaine profondeur
+// ----------------------------------------------------------
+function collapseVeryBigTree(treeRoot,patterns) {
+  var acolapser = [];
+  var aouvrir = [];
+  if (patterns.length > 0)  {
+    //Ecrase tous les noeuds
+    treeRoot.each(function (d) {
+      if ((d.depth == 5) || (d.depth == 10) ||(d.depth == 20)|| (d.depth == 30)|| (d.depth == 40) ) {
+      acolapser.push(d)
+      }
+    });
+    // Boucle sur les patterns
+    patterns.forEach(function(p) {
+      // Selection des feuilles de la pattern
+      p.forEach(function(d,i) {
+        var nomPattern= d.replace(/[\n\r]/g, '');
+        var focusNode = null;
+        // Recupere la feuille focus
+        treeRoot.each(function (d,i ){
+          if (d.data.name){
+            var nomFeuille = d.data.name;
+            focusNode = d;
+          }
+          // cas des crossref
+          if (d.data.eventsRec) {
+            if (d.data.eventsRec[0].crossref) {
+              // Si la balise crossref est presente on
+              // l'utilise plutot que le nom du gene
+              var cross=d.data.eventsRec[0].crossref;
+              for(var exKey in cross) {
+                var nomFeuille = cross[exKey];
+                if (nomFeuille === nomPattern){
+                  console.log("FIND PATTERN "+nomFeuille);
+                  focusNode = d;
+                }
+              }
+            }
+          }
+        });
+        if (focusNode) {
+          var parent = focusNode.parent;
+          //Ouvre les freres de la feuille
+          parent.each(function (d) {
+            // aouvrir.push(d)
+          });
+          //ouvre les noeuds entre la feuille et la racine
+          while (parent != null) {
+            aouvrir.push(parent)
+            parent = parent.parent;
+          }
+        }
+        else {
+          console.log("PATTERN NOT FOUND : "+nomPattern);
+        }
+      });
+    });
+  }
+  else {
+    console.log("NO PATTERN")
+    treeRoot.each(function (d) {
+      if ((d.depth == 5) || (d.depth == 10) ||(d.depth == 30)|| (d.depth == 60)|| (d.depth == 90) ) {
+        acolapser.push(d)
+      }
+    });
+  }
+  acolapser.forEach(function (d) {
+    if   (d.data.clade) {
+      d.data._clade = d.data.clade;
+      d.data.clade = null;
+      d.data.nodeinfo = {status : "collapsed"};
+    }
+  });
+  aouvrir.forEach(function (d) {
+    if   (d.data._clade) {
+      d.data.clade = d.data._clade;
+      d.data._clade = null;
+      d.data.nodeinfo = {status : "extended"};
+    }
+  });
+}
+  // Fonction  suppression d'un element unique dans un tableau
+  // ----------------------------------------------------------
+  function removeSingle(target_array) {
+    target_array.sort();
+    var i = 0;
+    while(i < target_array.length) {
+      if(target_array[i] !== target_array[i+1]) {
+        target_array.splice(i,1);
+      }
+      else {
+        i += 1;
+      }
+    }
+    return target_array;
+  }
+  // Fonction  suppression des  elements multiples dans un tableau
+  // --------------------------------------------------------------
+  function removeDuplicates(target_array) {
+    target_array.sort();
+    var i = 0;
+    while(i < target_array.length) {
+      if(target_array[i] === target_array[i+1]) {
+        target_array.splice(i+1,1);
+      }
+      else {
+        i += 1;
+      }
+    }
+    return target_array;
+  }
+  // Fonction  suppression des  elements multiples dans un tableau et classe par occurence
+  // -------------------------------------------------------------------------------------
+  function removesortDuplicates(target_array) {
+    target_array.sort();
+    var sorted_array = [];
+    var i = 0;
+    var j = 0;
+    var vscore  = {score: 0, fam: "none"};
+    var scored_array = [];
+    var score = [];
+    score[j] = 0;
+    sorted_array[i] = target_array[i];
+    i=1;
+    while(i < target_array.length) {
+      if(target_array[i] !==  sorted_array[j]) {
+        j = j + 1;
+        sorted_array[j] = target_array[i];
+        score[j] = 0;
+      } else {
+         score[j] = score[j] + 1;
+      }
+       i = i + 1;
+    }
+    i = 0;
+    while(i <= j){
+      vscore  = {score: score[i], fam: sorted_array[i]};
+      scored_array.push(vscore);
+      i = i + 1
+    }
+    scored_array.sort(function(a,b){
+          scA=a.score;
+          scB=b.score;
+          return scB - scA;
+        });
+    i = 0;
+    while(i <= j){
+      sorted_array[i] = scored_array[i].fam;
+      i = i + 1
+    }
+    return sorted_array;
+  }
+  // Actions sur les boutons
+  // -----------------------
+  $('#selectCrossref').on('click', function(event) {
+    selectedCrossref=$( "#selectCrossref option:selected" ).text();
+    selectedCrossrefURL=crossref[selectedCrossref].url;
+    myStorage.setItem("crossref",selectedCrossref);
+    updateLayout(cladeRoot);
+  });
+  $('#selectCrossref').ready(function() {
+      // selectedCrossref="HOGENOM";
+    });
+  $('#action').ready(function() {
+    switch (myStorage.getItem("action")) {
+      case "Switch children":
+        $('#switch').css('color','red');
+        break;
+      case "Collapse/Expand":
+        $('#collapse').css('color','red');
+        break;
+      case "Sub Tree/Upper Tree":
+        $('#subtree').css('color','red');
+        break;
+      default:
+    }
+  });
+  $('#action').on('click', function(event, dropdownData) {
+    var target = event.toElement || event.relatedTarget || event.target || function () { throw "Failed to attach an event target!"; }
+    myStorage.setItem("action",target.text);
+    switch (target.text) {
+      case "Switch children":
+        action = svgEvents.switchChildren;
+        $('#switch').css('color','red');
+        $('#collapse').css('color','black');
+        $('#subtree').css('color','black');
+        updateLayout(cladeRoot);
+        break;
+      case "Collapse/Expand":
+        action = svgEvents.collapse;
+        $('#switch').css('color','black');
+        $('#collapse').css('color','red');
+        $('#subtree').css('color','black');
+        updateLayout(cladeRoot);
+        break;
+      case "Sub Tree/Upper Tree":
+        action = svgEvents.focus;
+        $('#switch').css('color','black');
+        $('#collapse').css('color','black');
+        $('#subtree').css('color','red');
+        updateLayout(cladeRoot);
+        break;
+      default:
+    }
+  });
+  $('#globalcollapse').on('click', function(event, dropdownData) {
+    treeRoot = d3.hierarchy(cladeRoot, function(d) {
+      return d.clade;
+    });
+    collapseVeryBigTree(treeRoot,patterns);
+    updateLayout(cladeRoot);
+  });
+  $('#globalexpand').on('click', function(event, dropdownData) {
+    treeRoot = d3.hierarchy(cladeRoot, function(d) {
+      return d.clade;
+    });
+    expandTree(treeRoot);
+    updateLayout(cladeRoot);
+  });
+  var step = 5;
+  $('#moreWidth').on('click', function(event, dropdownData) {
+    nodeWidth += step;
+    myStorage.setItem("width",nodeWidth);
+    updateLayout(cladeRoot);
+  });
+  $('#lessWidth').on('click', function(event, dropdownData) {
+    nodeWidth -= step;
+    if  (nodeWidth  < step ) {
+      nodeWidth = step;
+    }
+    myStorage.setItem("width",nodeWidth);
+    updateLayout(cladeRoot);
+  });
+  $('#moreHeigth').on('click', function(event, dropdownData) {
+    nodeHeigth += step;
+    updateLayout(cladeRoot);
+  });
+  $('#lessHeigth').on('click', function(event, dropdownData) {
+    nodeHeigth -= step;
+    if  (nodeHeigth  < 0 ) {
+      nodeHeigth = 1;
+    }
+    updateLayout(cladeRoot);
+  });
+$('#export').on('click', function(event, dropdownData) {
+    var target = event.toElement || event.relatedTarget || event.target || function () { throw "Failed to attach an event target!"; }
+    myStorage.setItem("export",target.text);
+    switch (target.text) {
+      case "Tree":
+        $(".internal").css('font-size', '0.8rem');
+        saveSVGTree();
+        break;
+      case "Alignment":
+        saveSVGAlignment();
+        $('.aa-sequence text').css({
+          'font-family':'Courier',
+          'letter-spacing':(hStepBase - 10)+'px',
+        });
+        $('.dna-sequence text').css({
+          'font-family':'Courier',
+          'letter-spacing':(hStepBase - 10)+'px',
+        });
+        break;
+      default:
+    }
+  });
+// ==============================================================
+// Début modif : jQuery
+// ==============================================================
+// Actions à la fin du chargement de la page
+$(document).ready(function() {
+  switch (displaySeqType) {
+    case 'AA':
+      $('a#aminoacid').css('color', 'red');
+      $('a#nucleotid').css('color', 'black');
+      break;
+    case 'Nuc':
+      $('a#aminoacid').css('color', 'black');
+      $('a#nucleotid').css('color', 'red');
+      break;
+    default:
+      $('a#aminoacid').css('color', 'black');
+      $('a#nucleotid').css('color', 'black');
+      break;
+  }
+  $('div.demo').css({
+    'margin-top': $('nav').outerHeight(),
+    'width': $(window).width(),
+    'height': $(window).height() - $('nav').outerHeight() - 30,
+  });
+  $('#svg-container').attr('height', $('.demo').outerHeight() - 50);
+  $('#tree-container').attr('height', $('.demo').outerHeight() - 50);
+  $('#alignment-container').attr('height', $('.demo').outerHeight() - 50);
+  // Gestion du redimensionnement de la fenêtre
+  $(window).resize(function() {
+    $('div.demo').css({
+      'margin-top': $('nav').outerHeight(),
+      'width': $(window).width(),
+      'height': $(window).height() - $('nav').outerHeight() - 30,
+    });
+  });
+  // Gestion du bouton pour le type d'alignement
+  $('#alignement').on('click', function(event, dropdownData) {
+    var target = event.toElement || event.relatedTarget || event.target || function () { throw "Failed to attach an event target!"; }
+    myStorage.setItem("alignement",target.text);
+    switch (target.text) {
+      case "Codons":
+        if (displaySeqType != 'Nuc') {
+          displaySeqType = "Nuc";
+          console.log("current display: AA, switching to Nuc");
+          $(".aa-sequence").css("display", "none");
+          $(".dna-sequence").css("display", "block");
+          $("#toggle-seqtype").html("Current display: "+displaySeqType);
+          $("#nucleotid").css('color', 'red');
+          $("#aminoacid").css('color', 'black');
+          updateLayout(cladeRoot);
+        }
+        break;
+      case "Amino Acids":
+        if (displaySeqType != 'AA') {
+          displaySeqType = "AA";
+          console.log("current display: Nuc, switching to AA");
+          $(".dna-sequence").css("display", "none");
+          $(".aa-sequence").css("display", "block");
+          $("#nucleotid").css('color', 'black');
+          $("#aminoacid").css('color', 'red');
+          updateLayout(cladeRoot);
+        }
+        break;
+      default:
+    }
+  });
+  // Gestion de la modification des seuils
+  $('#ps-threshold-high, #ps-threshold-low').on('change', function(event) {
+    // On a modifié un des seuils
+    psThresholdsChanged = true;
+    // Correction des valeurs en présence d'incohérences
+    var psHighVal = $('#ps-threshold-high').val();
+    var psLowVal = $('#ps-threshold-low').val();
+    console.log('> ', psHighVal, '>=', psLowVal);
+    if (psHighVal < psLowVal) {
+      if (event.currentTarget.id == 'ps-threshold-high') {
+        // On a descendu le seuil supérieur plus bas que le seuil inférieur
+        // ex : psHighVal = 0.95 | psLowVal = 1.0
+        // On veut donc redecsendre le seuil inférieur en conséquence
+        $('#ps-threshold-low').val(psHighVal);
+        psLowVal = psHighVal;
+      } else {
+        // On a monté le seuil inférieur plus haut que le seuil supérieur
+        // ex : psHighVal = 1.0 | psLowVal = 1.05
+        // On veut donc remonter le seuil supérieur en conséquence
+        $('#ps-threshold-high').val(psLowVal);
+        psHighVal = psLowVal;
+      }
+    }
+    // Réaffectation des variables globales
+    psThresholdHigh = psHighVal;
+    psThresholdLow = psLowVal;
+    console.log('>> ', psThresholdHigh, '>=', psThresholdLow);
+    if (psThresholdsChanged) {
+      console.log('Updating... (lower = '+psThresholdLow+' ; upper = '+psThresholdHigh+')');
+      updateLayout(cladeRoot);
+      psThresholdsChanged = false;
+    }
+  });
+});
+// ==============================================================
+// Fin modif : jQuery
+// ==============================================================
+</script>
+</html>

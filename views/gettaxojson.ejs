@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Taxonomy</title>
+    <% include ../partials/head %>
+    <script src='./d3.js' charset="utf-8"></script>                                           <!-- librairie d3-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> <!-- librairie jquery -->
+    <script src="jscolor.js"></script>                                                        <!-- code pour le "color picker" -->
+    <script src="jquery.easy-autocomplete.min.js"></script>                                   <!-- code pour l'autocompletion -->
+    <script src='./speciestree/monarbre.js' charset="utf-8"></script>                                     <!-- Lit le fichier json cladeRoot contenant un arbre d'especes -->
+		<script src='./speciestree/palette.js' charset="utf-8"></script>
+		<!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link href="grid.css" rel="stylesheet">
+    <style>
+      .formfieldtaxon a {
+        text-decoration: none;
+        background-color: #f44336;
+        color: white;
+        padding: 1px 25px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+      }
+      h1 {
+        font-size: 30px;
+        font-family:Arial, Helvetica, sans-serif;
+        color: black;
+        padding:4px;
+        font-weight:lighter;
+        text-align:left;
+        display:block;
+        margin:4px;
+      }
+      h2 {
+        font-size: 20px;
+        font-family:Arial, Helvetica, sans-serif;
+        color: black;
+        padding:4px;
+        font-weight:lighter;
+        text-align:left;
+        display:block;
+        margin:4px;
+      }
+      h3 {
+        font-size: 12px;
+        font-family:Arial, Helvetica, sans-serif;
+        color: black;
+        padding:4px;
+        font-weight:lighter;
+        text-align:left;
+        display:block;
+        margin:4px;
+      }
+      .dico {
+        background-color: white;
+        padding:6px;
+      }
+      .dicotable {
+        word-wrap: break-word;
+        table-layout:fixed;
+        width: 100%;
+      }
+      .divCol {
+        display:none;
+      }
+      .dvLoading {
+        font-family:Arial, Helvetica, sans-serif;
+        font-size: 30px;
+        background:#A5CCB4 ;
+        height: 40px;
+        width: 250px;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 50%;
+        text-align:center;
+        margin: -25px 0 0 -25px;
+      }
+    </style>
+    <!-- CSS file for autocomplete -->
+    <link rel="stylesheet" href="easy-autocomplete.min.css">
+  </head>
+  <body>
+    <header>
+      <% include ../partials/header %>
+    </header>
+    <div id="loading"></div>    <!-- Div pour afficher le message de chargement -->
+    <div class="container">
+      <h1>Build color palette</h1>
+      <p class="lead">Create, modify, save and load your color palette.</p>
+      <div class="row">
+        <!-- Affiche formulaire taxon -->
+        <div class="col-lg-3" id = "BSaddTaxon"></div>
+        <!-- Affiche palette -->
+        <div class="col-lg-3">
+          <div id="dico" class = "dico"></div>
+          <div id="sendform">
+            <input  id="validate" type="button"  value="Validate palette">
+          </div>
+        </div>
+        <!-- Sauvegarde et chargement -->
+        <div class="col-lg-3" style="background-color:white;border:0;">
+          <div id="palette" class = "palette">
+            <h3>Save the palette:</h3>
+            <div id="savepalette"></div>
+          </div>
+          <h3>Load a new palette:</h3>
+          <input type="file"  id="fileinput"/>
+          <input type='button' id='btnLoad' value='Load' onclick='handleFileSelect();'>
+          <h3>Use predefined palettes:</h3>
+          <input type='button' id='predef1' value='Basic' onclick='usePredef1();'><br>
+          <input type='button' id='predef1' value='Eukarya' onclick='usePredef2();'><br>
+          <input type='button' id='predef1' value='Back to default' onclick='usePredef3();'>
+        </div>
+      </div>
+  </div>
+</body>
+<script type="text/javascript">
+  // Arbre d'especes (monarbre.js)
+  treeRoot = d3.hierarchy(cladeRootSpecies, function(d) {
+      return d.clade;
+    });
+  // Gestion de localStorage
+  var myStorage = window.localStorage;
+  if (myStorage.getItem("selectedSpecies") === null) {
+    myStorage.setItem("selectedSpecies","ARCHAEA::26CC16;EUKARYOTA::CC0E5E;BACTERIA::1267CC;");
+  }
+  var selectedSpecies=myStorage.getItem("selectedSpecies");
+  var allSpecies = [];
+  var allSpeciesNoInternals = [];
+  // Verification de la palette courante
+  var selectedSpecArray =  selectedSpecies.split(";");
+  var arrayLength = selectedSpecArray.length;
+  var flagModif = 0;
+  var speciesPalette = [];
+  var colorPalette = [];
+  for (var i = 0; i < arrayLength-1; i++) {
+    var specColor = selectedSpecArray[i].split("::");
+    speciesPalette.push(specColor[0]);
+    colorPalette.push(specColor[1]);
+  }
+  // Explore l'arbre d'espece pour fixer les couleurs des taxons selon
+  // les phyla, en profite  pour faire la liste des taxons [allspecies]
+  // pour la completion et reclasse pour l'affichage
+  // (on n'utilise donc pas la fonction mutualisee)
+  var sortedSelectedSpecies = "";
+  myStorage.removeItem("ColorationProcessed");
+  treeRoot.eachBefore(function (d) {
+    if (d.data.name.indexOf("(INTERNAL)") === -1) {
+        allSpeciesNoInternals.push(d.data.name.trim());
+    }
+    allSpecies.push(d.data.name.trim());
+    if  (speciesPalette.includes(d.data.name.trim())) {
+      var index = speciesPalette.indexOf(d.data.name.trim());
+      myStorage.setItem(d.data.name.trim(),"#"+colorPalette[index]);
+      sortedSelectedSpecies =  sortedSelectedSpecies + d.data.name.trim() + "::" +colorPalette[index] +";"  ;
+      var nodes = d.descendants();
+      nodes.forEach(function(n) {
+        myStorage.setItem(n.data.name.trim(),"#"+colorPalette[index]);
+        myStorage.setItem("phylum_"+n.data.name.trim(),speciesPalette[index]);
+      });
+    }
+  });
+  myStorage.setItem("ColorationProcessed","ok");  // a faire si la boucle a etet effectuee avec succes
+  selectedSpecies = sortedSelectedSpecies; // Remplace la liste courante par la liste classee
+  myStorage.setItem("selectedSpecies",selectedSpecies);
+  // Options pour la completion automatique
+  var optionsColAuto = {
+      data: allSpeciesNoInternals,
+	    list: {
+        maxNumberOfElements: 200,
+		    match: {
+          enabled: true
+        }
+      }
+  };
+
+  // ==========================
+  // DEFINITION DES FONCTIONS
+  // ==========================
+
+  // Fonction mise a jour du contenu destine a etre sauve dans un fichier palette
+  function updateSauvegardeDiv() {
+     $( "#inputTextToSave" ).remove();
+     $(savepalette).append('<textarea id="inputTextToSave" rows="20" cols = "70" style="display:none;" readonly>'+selectedSpecies+'</textarea>');
+  }
+
+  // Fonction ajout des elementsdu DOM pour la sauvegarde de la palette
+  function addSauvegardeDiv() {
+    $(savepalette).append('<input id="inputFileNameToSaveAs" value="Palette.txt"></input>');
+    $(savepalette).append('<button onclick="saveTextAsFile()">Save</button>');
+    $(savepalette).append('<textarea id="inputTextToSave" rows="20" cols = "70" style="display:none;" readonly>'+selectedSpecies+'</textarea>');
+  }
+
+  // Fonction mise a jour de l'affichage de la palette dans le DOM
+  function updateDisplayPalette() {
+     $( ".select" ).remove();
+     $( ".remove_all" ).remove();
+     displayPalette();
+  }
+
+  // Affichage de la palette dans le DOM
+  function displayPalette() {
+     selectedSpecies=myStorage.getItem("selectedSpecies");
+     var selectedSpecArray =  selectedSpecies.split(";");
+     var arrayLength = selectedSpecArray.length;
+     $(dico).append('<div  class = "select" style="color:grey"><h3>Palette contents:</h3></div>');
+     for (var i = 0; i < arrayLength-1; i++) {
+       var specColor = selectedSpecArray[i].split("::");
+       $(dico).append('<div  class = "select" style="color:#'+specColor[1]+'"><table class="dicotable"><tr><td><div class="divSpec">'+specColor[0]+'</div><div class="divCol">'+specColor[1]+'</div></td><td align=right><a href="#" class="remove_field">Remove</a> <a href="#" class="edit_field">Edit</a></tr></table></div>');
+     }
+     $(dico).append('<div class="formfieldtaxon"> <a href="#" class="remove_all">Remove all</a></div>');
+  }
+
+  // Fonction pour ajouter au DOM les elements pour le choix d'un taxon et d'une coleur associee
+  function addTaxonDiv(spe,col) {
+     $( "#BSaddTaxon" ).append('<div  id = "addTaxon">');
+     $( "#addTaxon" ).append("Choose a taxonomic level to add");
+     $( "#addTaxon" ).append("<div id=\"idtaxonselection\">");
+     $( "#idtaxonselection" ).append("<input id=\"taxonselection\" type=\"text\" name=\"mytaxon\" size=20 value=\""+spe+"\"/>");
+     $( "#addTaxon" ).append('</div>');
+     $( "#addTaxon" ).append("Pick a color:<br><a href=\"#\" class=\"addTaxonSubmit\">OK</a>");
+     $( "#addTaxon" ).append("<input id=\"colorselection\"  name=\"mycolor\" class=\"jscolor\" value=\""+col+"\" />");
+     $( "#BSaddTaxon" ).append('</div>');
+  }
+
+  // Fonction pour supprimer un taxon de la palette
+  function removeSpeciesPalette(s) {
+      var selectedSpecies = myStorage.getItem("selectedSpecies");
+      var selectedSpecArray =  selectedSpecies.split(";");
+      var arrayLength=selectedSpecArray.length;
+      selectedSpecies ="";
+      for (var i = 0; i < arrayLength-1; i++) {
+        var specColor = selectedSpecArray[i].split("::");
+        if (specColor[0]  !== s) {
+          selectedSpecies = selectedSpecies + selectedSpecArray[i] +";";
+        }
+      }
+      console.log(selectedSpecies);
+      myStorage.setItem("selectedSpecies",selectedSpecies);
+  }
+
+  // Fonction Suppression de taxon pour l'evenement click sur l'element removeField
+  function removeField(e){ //user click on remove field
+      e.preventDefault();
+      var divToRemove=$(this).parent().parent().parent().parent().parent("div");
+      var specToRemove=divToRemove.find("div.divSpec").text();
+      removeSpeciesPalette(specToRemove);
+      divToRemove.remove();
+      updateDisplayPalette();
+      updateSauvegardeDiv();
+  }
+
+  // Fonction Edition de taxon pour l'evenement click sur l'element removeField
+  function editField(e){ //user click on edit field
+      e.preventDefault();
+      var divToEdit=$(this).parent().parent().parent().parent().parent("div");
+      var specToEdit=divToEdit.find("div.divSpec").text();
+      var colToEdit=divToEdit.find("div.divCol").text();
+      // removeSpeciesPalette(specToEdit); // Vire l'espece de la palette
+      $('#addTaxon').remove();  // Suppression du formulaire taxon
+      // Ajout des elements pour le formulaire taxon
+      addTaxonDiv(specToEdit,colToEdit);
+      $("#taxonselection").easyAutocomplete(optionsColAuto);  // Pour l'autocompletion
+      new jscolor($('.jscolor').last()[0]); // Pour reinitaliser le picker
+      updateDisplayPalette();
+      updateSauvegardeDiv();
+  }
+
+  // Fonction Ajout de taxon
+  function addTaxonField(e){
+      console.log("ADDTAXON");
+      var taxonSelection = $('#taxonselection');
+      var species =  taxonSelection[0].value ;
+      var colorSelection = $('#colorselection');
+      var color =  colorSelection[0].value ;
+      if (myStorage.getItem("selectedSpecies") === null) {
+        myStorage.setItem("selectedSpecies","ARCHAEA::26CC16;EUKARYOTA::CC0E5E;BACTERIA::1267CC;");
+      }
+      var selectedSpecies=myStorage.getItem("selectedSpecies");
+      var allSpecies = [];
+
+      // Verification de la palette courante
+      var selectedSpecArray =  selectedSpecies.split(";");
+      var newSelectedSpecies= "";
+      var arrayLength = selectedSpecArray.length;
+      var flagModif = 0;
+      for (var i = 0; i < arrayLength-1; i++) {
+        var specColor = selectedSpecArray[i].split("::");
+        if (species === specColor[0]) {
+          console.log("ALREADY DEFINED "+ specColor[0]);
+          specColor[1]=color;
+          flagModif = 1;
+        }
+        newSelectedSpecies = newSelectedSpecies + specColor[0] + "::" + specColor[1] +";"  ;
+      }
+      if (flagModif === 0 ) {
+        newSelectedSpecies = newSelectedSpecies + species + "::" + color +";"  ;
+      }
+      selectedSpecies = newSelectedSpecies; // Mise a jour des modifs eventuelles
+      myStorage.setItem("selectedSpecies",selectedSpecies);
+      updateDisplayPalette();
+      updateSauvegardeDiv();
+  }
+
+  // Fonctions pour sauvegarder une contenu dans un fichier
+  // https://stackoverflow.com/questions/42207075/saving-the-file-in-folder-mentioned-by-user-html
+  function saveTextAsFile(){
+    var textToSave = document.getElementById("inputTextToSave").value;
+    var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+    var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+    var fileNameToSaveAs = document.getElementById("inputFileNameToSaveAs").value;
+    var downloadLink = document.createElement("a");
+    downloadLink.download = fileNameToSaveAs;
+    downloadLink.innerHTML = "Download File";
+    downloadLink.href = textToSaveAsURL;
+    downloadLink.onclick = destroyClickedElement;
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+  }
+
+  function destroyClickedElement(event){
+    document.body.removeChild(event.target);
+  }
+
+  // Fonctions de gestion des fichiers a charger
+  function handleFileSelect(){
+    if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+      alert('The File APIs are not fully supported in this browser.');
+      return;
+    }
+    input = document.getElementById('fileinput');
+    if (!input) {
+      alert("Um, couldn't find the fileinput element.");
+    }
+    else if (!input.files) {
+      alert("This browser doesn't seem to support the `files` property of file inputs.");
+    }
+    else if (!input.files[0]) {
+      alert("Please select a file before clicking 'Load'");
+    }
+    else {
+      file = input.files[0];
+      fr = new FileReader();
+      fr.onload = receivedText;
+      fr.readAsText(file);
+    }
+  }
+
+  // Chargement de la palette
+  function usepalette() {
+  myStorage.setItem("selectedSpecies",selectedSpecies);
+  updateDisplayPalette();
+  }
+
+  // Chargement d'une palette utilsateur
+  function receivedText() {
+    var myStorage = window.localStorage;
+    selectedSpecies=fr.result;
+    usepalette();
+  }
+
+  // Chargement d'une palette predefinie
+  function usePredef1() {
+    selectedSpecies="ARCHAEA::26CC16;EUKARYOTA::CC0E5E;BACTERIA::1267CC;";
+    usepalette();
+  }
+
+  // Chargement d'une palette predefinie
+  function usePredef2() {
+    selectedSpecies="ARCHAEA::828863;EUKARYOTA::CC3C1D;VIRIDIPLANTAE::99CC00;FUNGI::CC690E;METAZOA::56CCBE;CHORDATA::A51BCC;MAMMALIA::105FCC;PRIMATES::F714B0;BACTERIA::829863;";
+    usepalette();
+  }
+
+  // Chargement d'une palette predefinie
+  function usePredef3() {
+    selectedSpecies=defaultPalette;
+    usepalette();
+  }
+
+  // ==========================
+  // FIN DE LA DEFINITION DES FONCTIONS
+  // ==========================
+
+  // Affiche la palette
+  displayPalette();
+
+  // Construction du formulaire
+  $(document).ready(function() {
+
+    // Ajout des elements pour le formulaire taxon
+    addTaxonDiv("","91cc00");
+
+    // Ajout de la completion automatique
+    $("#taxonselection").easyAutocomplete(optionsColAuto);
+
+    // Ajout de la validation
+    $(sendform).on("click","#validate",function() {
+      $(loading).append('<div class="dvLoading"> setting colors ...</div>');
+      location.reload();
+    });
+
+    // Action : Ajout d'un taxon
+    $(document).on("click",".addTaxonSubmit", addTaxonField);
+
+    // Action : Suppression d'un taxon
+    $(dico).on("click",".remove_field", removeField);
+
+    // Action : Edition d'un taxon
+    $(dico).on("click",".edit_field",editField);
+
+    // Ajout des elements pour la sauvegarde de la palette
+    addSauvegardeDiv();
+
+    // Action : supprmimer tous les taxons
+    $(document).on("click",".remove_all", function(e){ //user click on remove all
+      selectedSpecies ="";
+      myStorage.setItem("selectedSpecies",selectedSpecies);
+      $( ".select" ).remove();
+      $( ".remove_all" ).remove();
+      updateSauvegardeDiv();
+    })
+  }); //Fin du formulaire
+
+
+  </script>
+</html>

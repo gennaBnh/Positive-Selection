@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Page de test</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src='./d3.js' charset="utf-8"></script>
+        <% include ../partials/head %>
+    </head>
+    <body class="container">
+        <header>
+            <% include ../partials/header %>
+        </header>
+        <section id="svgSection">
+            <h3>Affichage du graphe</h3>
+        </section>
+        <footer>
+            <% include ../partials/footer %>
+        </footer>
+    </body>
+
+    <!-- <script type="application/javascript">
+        var svg = d3.select('svg');
+
+        svg
+        .attr('height',500)
+        .attr('width',500)
+        .style('border', '1px solid black');
+
+        var ori = 50;
+
+        var x = d3.scaleLinear()
+        .domain([0, 200])
+        .range([0+ori, svg.attr('width')-ori]);
+
+        var xAxis = svg.call(d3.axisBottom(x));
+        xAxis.attr('transform', 'translate(50,100)');
+
+        svg.append('circle').attr('class', 'tomod')
+        .attr('cx',x(0)).attr('cy',ori).attr('r',20).style('fill','red');
+        svg.append('circle').attr('class', 'tomod')
+        .attr('cx',x(25)).attr('cy',ori).attr('r',20).style('fill','lime');
+        svg.append('circle').attr('class', 'tomod')
+        .attr('cx',x(50)).attr('cy',ori).attr('r',20).style('fill','blue');
+
+        var elems_to_mod = d3
+        .selectAll('.tomod')
+        .attr('stroke', 'black')
+        .style('opacity', 0.5)
+        .style('stroke-width', '3px');
+    </script> -->
+
+    <script>
+        var results = "0.23 1.28 0.36";
+        results = results.split(' ');
+        console.log('results');
+        console.log(results);
+        var dataset = [];
+        results.forEach(function(d,i) {
+            // console.log('d:'+d+' ; i:'+i);
+            result = {x:i+1, y:d};
+            dataset.push(result);
+        });
+        console.log('dataset');
+        console.log(dataset);
+
+        var pointSize = 20;
+
+        var margins = {top: 50, right: 50, bottom: 50, left: 50},
+            // width = 400 - (margins.left + margins.right),
+            // height = 400 - (margins.top + margins.bottom);
+            width = dataset.length*pointSize +50,
+            height = 150;
+
+        function max_y(item) {
+            var currentmax = item[0].y;
+            // console.log(item);
+            item.forEach(function(elem) {
+                // console.log(currentmax);
+                if (elem.y > currentmax) {
+                    currentmax = elem.y;
+                }
+            });
+            return currentmax;
+        }
+        console.log('max_y: '+max_y(dataset));
+
+        var x = d3.scaleLinear()
+            .domain([0, dataset.length])
+            .range([0, width]);
+
+        var y = d3.scaleLinear()
+            .domain([0, max_y(dataset)])
+            .range([height, 0]);
+
+        var svg = d3.select("#svgSection")
+            .append("svg")
+            .attr("width", width + margins.left + margins.right)
+            .attr("height", height + margins.top + margins.bottom)
+            .style("border", "1px solid black");
+        var graph = svg.append("g")
+            .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+        graph.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+        graph.append("g")
+            .call(d3.axisLeft(y));
+
+        var lines = graph.selectAll(".pslines")
+            .data(dataset);
+        lines.enter()
+            .append("line")
+            .attr("class", ".pslines")
+            .attr("x1", function(d) { return x(d.x) })
+            .attr("x2", function(d) { return x(d.x) })
+            .attr("y1", function(d) { return y(0) })
+            .attr("y2", function(d) { return y(d.y) })
+            .style("stroke", "grey")
+            .style("stroke-width", "8px")
+            .style("opacity", 0)
+            .transition()
+            .duration(1000)
+            .style("opacity", 1);
+        lines.exit()
+            .transition()
+            .duration(1000)
+            .style("opacity", 0)
+            .remove();
+
+        // var circles = graph.selectAll(".points")
+        //     .data(dataset);
+        // circles.enter()
+        //     .append("circle")
+        //     .attr("class", ".points")
+        //     .attr("cx", function(d) { return x(d.x) })
+        //     .attr("cy", function(d) { return y(d.y) })
+        //     .attr("r", 5)
+        //     .style("opacity", 0)
+        //     .transition()
+        //     .duration(1000)
+        //     .style("opacity", 1);
+        // circles.exit()
+        //     .transition()
+        //     .duration(1000)
+        //     .style("opacity", 0)
+        //     .remove();
+    </script>
+    
+</html>
