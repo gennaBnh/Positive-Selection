@@ -866,22 +866,24 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
   // Ajout de l'axe y au graphe
   psGraph.append('g')
     .call(d3.axisLeft(y));
-  // Ajout du seuil supérieur au graphe (à y = seuil haut)
-  psGraph.append('line')
-    .attr('x1', x(1))
-    .attr('y1', y(psThresholdHigh))
-    .attr('x2', x(psResultsDataset.length+1))
-    .attr('y2', y(psThresholdHigh))
-    .style('stroke', '#E37957')
-    .style('stroke-width', 2+'px')
-    .style('stroke-dasharray', ('4, 4'));
   // Ajout du seuil inférieur au graphe (à y = seuil bas)
   psGraph.append('line')
     .attr('x1', x(1))
     .attr('y1', y(psThresholdLow))
     .attr('x2', x(psResultsDataset.length+1))
     .attr('y2', y(psThresholdLow))
-    .style('stroke', '#E37957')
+    // .style('stroke', '#E37957')
+    .style('stroke', psThresholdLowBgColor)
+    .style('stroke-width', 2+'px')
+    .style('stroke-dasharray', ('4, 4'));
+  // Ajout du seuil supérieur au graphe (à y = seuil haut)
+  psGraph.append('line')
+    .attr('x1', x(1))
+    .attr('y1', y(psThresholdHigh))
+    .attr('x2', x(psResultsDataset.length+1))
+    .attr('y2', y(psThresholdHigh))
+    // .style('stroke', '#E37957')
+    .style('stroke', psThresholdHighBgColor)
     .style('stroke-width', 2+'px')
     .style('stroke-dasharray', ('4, 4'));
   // // Suppression du graphe
