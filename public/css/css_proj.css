@@ -1,25 +1,19 @@
+.seqblock text {
+      color: #000;
+      cursor: text;
+      font-family: 'Courier';
+      font-size: 1.667rem;
+}
 nav label {
       font-weight: 400;
       margin: 0 10px;
 }
+
 input[type=number] {
       width: 80px;
 }
 form {
       border: 1px solid black;
       padding: 1rem;
-}
-
-.seqblock text {
-      font-family: 'Courier';
-}
-.seqblock g text {
-      color: #000;
-      cursor: text;
-      font-family: 'Courier';
-      font-size: 16.667px;
-      letter-spacing: calc(12px - 9.998px);
-}
-.node.seqblock {
-      cursor: default;
+      /*color: red;*/
 }
