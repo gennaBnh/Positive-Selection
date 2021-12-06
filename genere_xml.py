@@ -36,25 +36,25 @@ import base64
 
 def dna_to_prot(dna_seq:str):
     matches = {
-        'TTT':'F', 'TTC':'F', 'TTA':'L', 'TTG':'L',
-        'TCT':'S', 'TCC':'S', 'TCA':'S', 'TCG':'S',
-        'TAT':'Y', 'TAC':'Y', 'TAA':'*', 'TAG':'*',
-        'TGT':'C', 'TGC':'C', 'TGA':'*', 'TGG':'W',
+        'AAA':'K', 'AAC':'N', 'AAG':'K', 'AAT':'N'
+        'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T'
+        'AGA':'R', 'AGC':'S', 'AGG':'R', 'AGT':'S'
+        'ATA':'I', 'ATC':'I', 'ATG':'M', 'ATT':'I'
 
-        'CTT':'L', 'CTC':'L', 'CTA':'L', 'CTG':'L',
-        'CCT':'P', 'CCC':'P', 'CCA':'P', 'CCG':'P',
-        'CAT':'H', 'CAC':'H', 'CAA':'Q', 'CAG':'Q',
-        'CGT':'R', 'CGC':'R', 'CGA':'R', 'CGG':'R',
+        'CAA':'Q', 'CAC':'H', 'CAG':'Q', 'CAT':'H'
+        'CCA':'P', 'CCC':'P', 'CCG':'P', 'CCT':'P'
+        'CGA':'R', 'CGC':'R', 'CGG':'R', 'CGT':'R'
+        'CTA':'L', 'CTC':'L', 'CTG':'L', 'CTT':'L'
 
-        'ATT':'I', 'ATC':'I', 'ATA':'I', 'ATG':'M',
-        'ACT':'T', 'ACC':'T', 'ACA':'T', 'ACG':'T',
-        'AAT':'N', 'AAC':'N', 'AAA':'K', 'AAG':'K',
-        'AGT':'S', 'AGC':'S', 'AGA':'R', 'AGG':'R',
+        'GAA':'E', 'GAC':'D', 'GAG':'E', 'GAT':'D'
+        'GCA':'A', 'GCC':'A', 'GCG':'A', 'GCT':'A'
+        'GGA':'G', 'GGC':'G', 'GGG':'G', 'GGT':'G'
+        'GTA':'V', 'GTC':'V', 'GTG':'V', 'GTT':'V'
 
-        'GTT':'V', 'GTC':'V', 'GTA':'V', 'GTG':'V',
-        'GCT':'A', 'GCC':'A', 'GCA':'A', 'GCG':'A',
-        'GAT':'D', 'GAC':'D', 'GAA':'E', 'GAG':'E',
-        'GGT':'G', 'GGC':'G', 'GGA':'G', 'GGG':'G',
+        'TAA':'*', 'TAC':'Y', 'TAG':'*', 'TAT':'Y'
+        'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S'
+        'TGA':'*', 'TGC':'C', 'TGG':'W', 'TGT':'C'
+        'TTA':'L', 'TTC':'F', 'TTG':'L', 'TTT':'F'
 
         '---':'-',
     }
