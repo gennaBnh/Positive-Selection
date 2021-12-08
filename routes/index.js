@@ -1,9 +1,11 @@
 var express = require('express');
 var router = express.Router();
+var multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 const browser = require('browser-detect');
 var bodyParser = require('body-parser');
-router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+router.use(bodyParser.json()); // support json encoded bodies
 if (typeof localStorage === "undefined" || localStorage === null) {
   var LocalStorage = require('node-localstorage').LocalStorage;
   localStorage = new LocalStorage('./scratch');
@@ -66,7 +68,38 @@ router.get('/taxodico', function(req, res, next) {
   res.render('gettaxojson.ejs', {species:JSON.stringify([]),colour:JSON.stringify([])});
 });
 
-
+// =====================
+// Routages POST
+// =====================
+router.post('/display', upload.single('file'), function(req, res, next) {
+  console.log('Accès à /display');
+  const fs = require('fs');
+  const fname = 'uploads/' + req.file.filename
+  fs.readFile(fname, 'utf8' , (err, data) => {
+    if (err) {
+      res.render('error.ejs', {message:"Erreur de lecture",error:err});
+    }
+    var xml_digester = require("xml-digester");
+    var handler = new xml_digester.OrderedElementsHandler("eventType");
+    var options = {
+      "handler": [{
+        "path": "eventsRec/*",
+        "handler": handler
+      }]
+    };
+    var digester = xml_digester.XmlDigester(options);
+    digester.digest(data, function(err, results) {
+      if (err) {
+        console.log(err);
+        return
+      }
+      var JSONtree = JSON.stringify(results);
+      // Séquence à mettre en valeur :
+      var JSONpattern = JSON.stringify("0:NM_001193307dot1_hom_Sap_SAMD9");
+      res.render('displaytree.ejs', {arbre:JSONtree,pattern:JSONpattern});
+    });
+  });
+});
 
 
 // ================
