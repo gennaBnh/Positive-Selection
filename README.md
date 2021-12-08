@@ -29,7 +29,7 @@ Le script *example.sh* construira l'arbre XML correspondant aux données d'exemp
 
 ou 
 
-`python3 genere_xml.py <fichier_arbre> <fichier_alignement> <fichier_résultats> <fichier_statistiques>``
+`python3 genere_xml.py <fichier_arbre> <fichier_alignement> <fichier_résultats> <fichier_statistiques>` 
 `cp <fichier_arbre>.xml input_tree.xml`
 
 ### Lancer le serveur
