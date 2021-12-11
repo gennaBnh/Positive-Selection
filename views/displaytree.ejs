@@ -925,7 +925,7 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
   // Début modif : blocs de séquences
   // ==============================================================
   seq_dataset = [];
-  var seq_lg = xmlparser.flatTree(recTree.phyloxml.phylogeny.seqIDMax.lengthMax);
+  var seq_lg = xmlparser.flatTree(recTree.phyloxml.phylogeny.maxSeqIdLength.maxLength);
   var leaves_sequences = leaves.filter(function(d) {return(d.data.lastEvent.dnaAlign)});
   leaves_sequences.forEach (function (d,i) {
     var leaf_name = d.data.lastEvent.name;
