@@ -300,7 +300,7 @@ maxSeqIdLength = loadAlignment(args.alignment)[1]
 print ("OK")
 
 print ("Loading results... ")
-resultsText =  loadResults(args.results, args.statcol)
+resultsText =  loadResults(args.results, args.statcol, args.nostat)
 print ("OK")
 
 #Creates empty phyloxml document
