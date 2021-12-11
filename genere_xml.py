@@ -29,7 +29,7 @@ from xml.dom import minidom
 
 from lxml.etree import XMLParser, parse
 
-from docopt import docopt
+# from docopt import docopt
 import sqlite3
 import zlib
 import base64
@@ -292,7 +292,7 @@ def createPhyloXML(fam,newick):
 
 
 sys.setrecursionlimit(15000)
-print(sys.getrecursionlimit())
+# print(sys.getrecursionlimit())
 
 print ("Loading alignment... ")
 alignmentDict =  loadAlignment(args.alignment)[0]
