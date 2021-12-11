@@ -95,6 +95,7 @@
     }
     .seqblock text {
       font-family: 'Courier';
+      font-size: 16px;
     }
     .seqblock g text {
       color: #000;
@@ -242,8 +243,9 @@
   var psThresholdLowBgColor = "#f7dc6f";
   var psBelowThresholdBgColor = "beige";
   var psMissingBgColor = "#aaa";
-  var projOffsetLeft = 700;
+  // var projOffsetLeft = 700;
   var psThresholdsChanged = false;
+  var seq_lg = xmlparser.flatTree(recTree.phyloxml.phylogeny.maxSeqIdLength)*10;
   // ==============================================================
   // Fin modif : variables globales
   // ==============================================================
@@ -420,7 +422,7 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
     result = {site:d[0], stat:d[1]};
     psResultsDataset.push(result);
   });
-  var psGraphMargins = {top: 20, right: 50, bottom: 50, left: 380};
+  var psGraphMargins = {top: 20, right: 50, bottom: 50, left: 50+seq_lg};
   var psGraphWidth = psResultsDataset.length*hStep;
   var psGraphHeight = 150;
   // ==============================================================
@@ -925,7 +927,6 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
   // Début modif : blocs de séquences
   // ==============================================================
   seq_dataset = [];
-  var seq_lg = xmlparser.flatTree(recTree.phyloxml.phylogeny.maxSeqIdLength.maxLength);
   var leaves_sequences = leaves.filter(function(d) {return(d.data.lastEvent.dnaAlign)});
   leaves_sequences.forEach (function (d,i) {
     var leaf_name = d.data.lastEvent.name;
@@ -960,7 +961,7 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
       .text(function(d) {
         return d.name;
       })
-      .attr('transform', 'translate('+'-'+(Math.floor(seq_lg)+300)+','+5+')');
+      .attr('transform', 'translate('+'-'+(Math.floor(seq_lg))+','+5+')');
   var maxYSequences = function(seqDataset) {
     var currentmax = seqDataset[0].y;
     seqDataset.forEach(function(seq) {
@@ -1064,26 +1065,26 @@ function isStorageSupported(storage) {
 }
 // Fonction d'export du SVG
 // ------------------------
-// saveSVG()
-function saveSVG(){
-  // get styles from all required stylesheets
-  // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
-  var style = "\n";
-  var requiredSheets = ['phylogram_d3.css', 'open_sans.css'];
-  console.log('requiredSheets:');
-  console.log(requiredSheets);
-  var img = new Image();
-  var serializer = new XMLSerializer();
-  // prepend style to svg
-  svg1.insert('defs',":first-child");
-  d3.select("svg defs")
-      .append('style')
-      .attr('type','text/css')
-      .html(style);
-  var svgStr = serializer.serializeToString(svg1.node());
-  img.src = 'data:image/svg+xml;base64,'+window.btoa(unescape(encodeURIComponent(svgStr)));
-  window.open().document.write('<p>Please copy or save the the image <img src="' + img.src + '"/>');
-};
+// // saveSVG()
+// function saveSVG(){
+//   // get styles from all required stylesheets
+//   // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
+//   var style = "\n";
+//   var requiredSheets = ['phylogram_d3.css', 'open_sans.css'];
+//   console.log('requiredSheets:');
+//   console.log(requiredSheets);
+//   var img = new Image();
+//   var serializer = new XMLSerializer();
+//   // prepend style to svg
+//   svg1.insert('defs',":first-child");
+//   d3.select("svg defs")
+//       .append('style')
+//       .attr('type','text/css')
+//       .html(style);
+//   var svgStr = serializer.serializeToString(svg1.node());
+//   img.src = 'data:image/svg+xml;base64,'+window.btoa(unescape(encodeURIComponent(svgStr)));
+//   window.open().document.write('<p>Please copy or save the the image <img src="' + img.src + '"/>');
+// };
 function saveSVGTree(){
   $("a#tree").css('color', 'red');
   $("a#selecp").css('color', 'black');
@@ -1109,6 +1110,7 @@ function saveSVGAlignment(){
   // Application de styles pour l'export
   $('.seqblock text').css({
     'font-family':'Courier',
+    'font-size': '16px',
   });
   $('.seqblock g text').css({
     'letter-spacing':(alignmentLetterSpacing)+'px',
