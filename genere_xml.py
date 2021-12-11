@@ -276,7 +276,7 @@ def createPhyloXML(fam,newick):
     resultsElement.set('results', resultsText)
 
     LengthMaxSeqID = etree.Element('maxSeqIdLength')
-    LengthMaxSeqID.text = maxSeqIdLength
+    LengthMaxSeqID.text = str(maxSeqIdLength)
 
     treesize =  etree.Element("size")
     treesize.set('leaves',str(nbfeuille))
