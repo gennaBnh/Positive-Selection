@@ -49,7 +49,7 @@ parser.add_argument('-a', '--align', dest='alignment', action='store',\
     required=True, help='file containing an alignment in FASTA format')
 parser.add_argument('-s', '--stats', dest='results', action='store',\
     required=True, help='file containing statistics')
-parser.add_argument('-c', '--statcol', dest='statcol', action='store', type=int,\
+parser.add_argument('-c', '--col', dest='statcol', action='store', type=int,\
     default=1,\
     required=True, help='index of the column containing the statistics to use')
 parser.add_argument('-n', '--nostat', dest='nostat', action='store', type=float,\
