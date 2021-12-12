@@ -155,17 +155,6 @@
         <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
       </button>
       <!-- Début modif -->
-      <!-- Bouton  Export -->
-      <div class="btn-group" role="group" id="export">
-        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="top" title="export figure">
-          Export
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="#" id="tree">Tree</a></li>
-          <li><a href="#" id="selecp">Alignment</a></li>
-        </ul>
-      </div>
       <!-- Bouton  Alignement -->
       <div class="btn-group" role="group" id="alignement">
         <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="top" title="Choose type of alignment"  >
@@ -177,9 +166,20 @@
           <li><a href="#" id="nucleotid">Codons</a></li>
         </ul>
       </div>
+      <!-- Bouton  Export -->
+      <div class="btn-group" role="group" id="export">
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="top" title="export figure">
+          Export
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#" id="tree">Tree</a></li>
+          <li><a href="#" id="selecp">Alignment</a></li>
+        </ul>
+      </div>
       <!-- Champs Seuils sup. et inf. -->
-      <label for="ps-threshold-high" style="font-size: 12px;">Upper threshold:</label><input type="number" id="ps-threshold-high" min="0.0" step="0.05" placeholder="PS Threshold" value="1.0" style="width: 5em; font-size: 12px;"/>
       <label for="ps-threshold-low"  style="font-size: 12px;">Lower threshold:</label><input type="number" id="ps-threshold-low" min="0.0" step="0.05" placeholder="PS Threshold" value="0.9" style="width: 5em; font-size: 12px;"/>
+      <label for="ps-threshold-high" style="font-size: 12px;">Upper threshold:</label><input type="number" id="ps-threshold-high" min="0.0" step="0.05" placeholder="PS Threshold" value="1.0" style="width: 5em; font-size: 12px;"/>
       <!-- Fin modif -->
   </nav>
   <!-- <div  class="testnav" id="testnav" ></div> -->
@@ -419,7 +419,7 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
   var stat = 0.0;
   results.forEach(function(d,i) {
     d = d.split(':');
-    result = {site:d[0], stat:d[1]};
+    result = {site:parseInt(d[0]), stat:parseFloat(d[1])};
     psResultsDataset.push(result);
   });
   var psGraphMargins = {top: 20, right: 50, bottom: 50, left: 50+seq_lg};
