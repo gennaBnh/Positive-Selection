@@ -25,12 +25,12 @@ In order to create the XML file the interface needs, use the command
 
 `python3 genere_xml.py -t <tree_file> -a <alignment_file> -s <results_file>`
 
-You may now choose which column of results should be considered when creating the XML file.
+- You may choose which column of results should be considered when creating the XML file.
 It will be set to 1 by default (0-based) in order to skip a line header, but you can change this
 with the `-c`/`--col` option.
-
-In case some positions have no result associated with them, a replacement value of -1 will be
+- In case some positions have no result associated with them, a replacement value of -1 will be
 applied by default. This value can be changed with the `-n`/`--nostat` option.
+- The output XML can be renamed with the `-o`/`--output` option.
 
 ### Launching the server
 
