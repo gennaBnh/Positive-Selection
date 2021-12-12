@@ -43,19 +43,25 @@ import base64
 
 parser = argparse.ArgumentParser(description='Generate an XML file from \
     a tree, an alignment and statistics.')
-parser.add_argument('-t', '--tree', dest='tree', action='store',\
-    required=True, help='file containing a tree in Newick format')
-parser.add_argument('-a', '--align', dest='alignment', action='store',\
-    required=True, help='file containing an alignment in FASTA format')
-parser.add_argument('-s', '--stats', dest='results', action='store',\
-    required=True, help='file containing statistics')
+parser.add_argument('-t', '--tree', dest='treeFile', action='store',\
+    required=True,\
+    help='file containing a tree in Newick format')
+parser.add_argument('-a', '--align', dest='alignmentFile', action='store',\
+    required=True,\
+    help='file containing an alignment in FASTA format')
+parser.add_argument('-s', '--stats', dest='resultsFile', action='store',\
+    required=True,\
+    help='file containing the results')
 parser.add_argument('-c', '--col', dest='statcol', action='store', type=int,\
     default=1,\
-    required=True, help='index of the column containing the statistics to use')
+    help='index of the results column to use')
 parser.add_argument('-n', '--nostat', dest='nostat', action='store', type=float,\
     default=-1.0,\
     help='value to use in case there is no statistic associated\
     with a site in the sequence')
+parser.add_argument('-o', '--output', dest='output', action='store',\
+    help='name of the output XML file (if not specified, the XML will have \
+    the same name as the tree file)')
 args = parser.parse_args()
 
 
@@ -107,6 +113,7 @@ def nuc_acid_to_prot(dna_seq:str):
     #     print("Inorrect sequence length")
     #     return False
 
+
 def loadAlignment(alignmentFile):
     """Loads a FASTA alignment."""
     alignmentDict = {}
@@ -122,6 +129,7 @@ def loadAlignment(alignmentFile):
                 aligned_seq = line.strip('\n')
                 alignmentDict[seq_id] = aligned_seq
     return alignmentDict, seq_idMax
+
 
 def loadResults(resultsFile, statcol=1, nostat_value=-1.0):
     """Loads statistics. <statcol> defines the 0-based index
@@ -153,6 +161,7 @@ def loadResults(resultsFile, statcol=1, nostat_value=-1.0):
             resultsText += ' '
     return resultsText
 
+
 def loadDico(fileDico):
     """
     Fonction qui prend un fichier d'alignement en entree et retourne un dictionnaire des noms d'espece des sequences
@@ -170,6 +179,7 @@ def loadDico(fileDico):
             # speciesDico[key.split(">")[1]] = f"{tline[2]} {tline[3]} {fin}"
     file.close()
     return speciesDico
+
 
 def createPhyloXML(fam,newick):
     #Parse and return exactly one tree from the given file or handle
@@ -295,28 +305,31 @@ sys.setrecursionlimit(15000)
 # print(sys.getrecursionlimit())
 
 print ("Loading alignment... ")
-alignmentDict =  loadAlignment(args.alignment)[0]
-maxSeqIdLength = loadAlignment(args.alignment)[1]
+alignmentDict =  loadAlignment(args.alignmentFile)[0]
+maxSeqIdLength = loadAlignment(args.alignmentFile)[1]
 print ("OK")
 
 print ("Loading results... ")
-resultsText =  loadResults(args.results, args.statcol, args.nostat)
+resultsText =  loadResults(args.resultsFile, args.statcol, args.nostat)
 print ("OK")
 
 #Creates empty phyloxml document
 #project = Phyloxml()   a decommenter si on veut un fichier xml unique
 
 # Loads Species name dico
-dico = loadDico(args.alignment)
+dico = loadDico(args.alignmentFile)
 
 # Loads newick tree
-treefile = open(args.tree,"r")
-if '.' in args.tree:
-    treefile_no_ext = args.tree[::-1].split('.', 1)[1][::-1]
+treefile = open(args.treeFile,"r")
+print(args.output)
+if args.output:
+    output_name = args.output
 else:
-    treefile_no_ext = args.tree
-xmlouputfile = open(treefile_no_ext+".xml","w")
-
+    if '.' in args.treeFile:
+        output_name = args.treeFile[::-1].split('.', 1)[1][::-1]
+    else:
+        output_name = args.treeFile
+xmloutputfile = open(output_name+".xml","w")
 
 for line in treefile:
     tline = re.split(' ',line)
@@ -327,8 +340,8 @@ for line in treefile:
         newick = tline[0]
         fam = ''
     phyloxmltree = createPhyloXML(fam,newick)
-    xmlouputfile.write(phyloxmltree)
+    xmloutputfile.write(phyloxmltree)
     print ("Famille "+fam+" OK")
 
 treefile.close()
-xmlouputfile.close()
+xmloutputfile.close()
