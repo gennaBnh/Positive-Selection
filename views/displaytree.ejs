@@ -894,7 +894,6 @@ function updateSvg(treeRoot,firstLoad ,config = {}) {
   var rects = psGraph.selectAll('.psrects')
     .data(psResultsDataset);
   // Affichage des rectangles
-  var i_rect = 1;
   rects.enter().append('rect')
     .attr('class', 'psrects')
     .attr('title', function(d) {
