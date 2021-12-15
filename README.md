@@ -23,7 +23,7 @@ Project : development of an interface for positive selection
 
 In order to create the XML file the interface needs, use the command
 
-`python3 genere_xml.py -t <tree_file> -a <alignment_file> -s <results_file>`
+`python3 genere_xml.py -t <tree_file> -a <alignment_file> -s <results_file> -c <results_column>`
 
 - You may choose which column of results should be considered when creating the XML file.
 It will be set to 1 by default (0-based) in order to skip a line header, but you can change this
