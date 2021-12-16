@@ -34,7 +34,7 @@ applied by default. This value can be changed with the `-n`/`--nostat` option.
 
 #### Generating an XML file for the interface - example : 
 
-An example with files in the folder 'data' : 
+An example with the files in the folder 'data' : 
 
 `python3 genere_xml.py -t data/example_tree.tree -a data/example_alignment.fasta -s data/example_results.info -c 8`
 
