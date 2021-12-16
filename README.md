@@ -32,6 +32,12 @@ with the `-c`/`--col` option.
 applied by default. This value can be changed with the `-n`/`--nostat` option.
 - The output XML can be renamed with the `-o`/`--output` option.
 
+#### Generating an XML file for the interface - example : 
+
+An example with files in the folder 'data' : 
+
+`python3 genere_xml.py -t data/example_tree.tree -a data/example_alignment.fasta -s data/example_results.info -c 8`
+
 ### Launching the server
 
 Simply use `npm start` and the interface will be available at the configured address.
